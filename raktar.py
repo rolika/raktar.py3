@@ -30,7 +30,7 @@ VERZIO = '027'
 WINDOWS_IKON = 'wevik.ico'
 LINUX_IKON = 'wevik.gif'
 ADATBAZIS = 'adatok.db'
-SZERVEZET = 'Wevik Engineer Kft.\n8445-Városlőd\nPille utca 56.'
+SZERVEZET = 'Pohlen-Dach Hungária Bt.\n8440-Herend\nDózsa utca 49.'
 
 #grid-jellemzők
 HOSSZU_MEZO = 42
@@ -193,7 +193,7 @@ class RaktarKeszlet(Frame):
     def adatbazisInicializalasa(self):
         self.kapcsolat = sqlite3.connect(ADATBAZIS)
         self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar(cikkszam INTEGER PRIMARY KEY ASC, keszlet, megnevezes, gyarto, leiras, megjegyzes, egyseg, egysegar, kiszereles, hely, lejarat, gyartasido, letrehozas, utolso_modositas)')
-        self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar_naplo(cikkszam INTEGER PRIMARY KEY ASC, megnevezes, egyseg, egysegar, valtozas, datum, projektszam)')
+        self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar_naplo(azonosito INTEGER PRIMARY KEY ASC, cikkszam INTEGER, megnevezes, egyseg, egysegar, valtozas, datum, projektszam)')
         self.kapcsolat.row_factory = sqlite3.Row
         self.kurzor = self.kapcsolat.cursor()
         self.teljesListaKeszitese()
@@ -306,12 +306,12 @@ class RaktarKeszlet(Frame):
                 sor = self.kurzor.fetchone()
                 keszlet = sor['keszlet']
                 uj_keszlet = valtozas
-                szallito = False #szállítólevélbe kerül, vagy sem
+                szallitolevel = False #szállítólevélbe kerül, vagy sem
                 if v.startswith(('-', '+')):
                     uj_keszlet = keszlet + valtozas
                     szallitolevel = True
                 if uj_keszlet >= 0: #ha érvényes az új készlet, beírja, egyébként nem történik semmi
-                    self.kapcsolat.execute('INSERT INTO raktar_naplo(megnevezes, egyseg, egysegar, valtozas, datum, projektszam) VALUES (?, ?, ?, ?, ?, ?)', (self.megnevezes.get(), self.egyseg.get(), egysegar, valtozas, datumbelyeg, self.hely.get())) #csak a +- változást menti
+                    self.kapcsolat.execute('INSERT INTO raktar_naplo(cikkszam, egyseg, egysegar, valtozas, datum, projektszam) VALUES (?, ?, ?, ?, ?, ?)', (self.cikkszam.get(), self.egyseg.get(), egysegar, valtozas, datumbelyeg, self.hely.get())) #csak a +- változást menti
                     self.kapcsolat.execute('UPDATE raktar SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?', (uj_keszlet, datumbelyeg, self.cikkszam.get()))
                     self.kapcsolat.commit()
                     if szallitolevel:
