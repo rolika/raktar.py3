@@ -460,7 +460,7 @@ class RaktarKeszlet(Frame):
         f.write('_______________________________________________________________________________\n')
         f.write('\nKiválasztás értéke összesen:                                    {:>12} Ft\n'.format(ezresv(self.kivalasztasErteke())))
         f.write('Raktár értéke összesen:                                         {:>12} Ft\n'.format(ezresv(self.raktarErtek())))
-        f.write('\nKelt: Városlőd, {}\n'.format(datumbelyeg_kijelzo))
+        f.write('\nKelt: Herend, {}\n'.format(datumbelyeg_kijelzo))
         f.close()
         print('Raktárkészlet exportálva.')
 
