@@ -286,7 +286,10 @@ class RaktarKeszlet(Frame):
 
     def valasztasListabol(self, event):
         valasztas = self.listbox.curselection()
-        self.tetelKijelzese(self.cikkszamok[valasztas[0]])
+        try:
+            self.tetelKijelzese(self.cikkszamok[valasztas[0]])
+        except IndexError:
+            pass  # még nem jöttem rá, ezt miért dobja
 
     def keszletValtozasa(self, event):
          #csak meglévőt módosít! új tételt előbb menteni kell
