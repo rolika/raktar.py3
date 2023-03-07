@@ -417,7 +417,7 @@ class RaktarKeszlet(Frame):
         sorszam = 1
         datumbelyeg_file = strftime('%Y%m%d%H%M%S')
         datumbelyeg_kijelzo = strftime('%Y.%m.%d.')
-        f = open('szallito{}.txt'.format(datumbelyeg_file),'w')
+        f = open('szallitolevelek/szallito{}.txt'.format(datumbelyeg_file),'w')
         f.write('\n{:_^79}\n'.format('S Z Á L L Í T Ó L E V É L'))
         f.write('{:>79}'.format('száma: {}{}\n'.format(SZERVEZET[0], datumbelyeg_file)))        
         szallito = SZERVEZET.split('\n')
