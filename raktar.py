@@ -311,9 +311,11 @@ class RaktarKeszlet(Frame):
                 keszlet = sor['keszlet']
                 uj_keszlet = valtozas
                 szallitolevel = False #szállítólevélbe kerül, vagy sem
+                mozgas = False  # kivét vagy bevét
                 if v.startswith(('-', '+')):
                     uj_keszlet = keszlet + valtozas
                     szallitolevel = True
+                    mozgas = "Kivettél" if v.startswith("-") else "Bevételeztél"
                 else:
                     if not messagebox.askokcancel(title=sor["megnevezes"],
                             message="""Ez beállít {} {}-t új készletként.\nBiztos vagy benne?""".format(uj_keszlet, sor["egyseg"])):
@@ -329,6 +331,11 @@ class RaktarKeszlet(Frame):
                         szallito['egyseg'] = self.egyseg.get()
                         self.szallitolevel.append(szallito)
                     self.tetelKijelzese(int(self.cikkszam.get()))
+                    if mozgas:  # beállításnál nincs értelme
+                        print("{} {} {} {} -t.".format(mozgas,
+                                                       valtozas,
+                                                       self.egyseg.get(),
+                                                       self.megnevezes.get()))
                 else:
                     messagebox.showwarning(title="Készlethiány!",
                                            message="{}: {} {}".\
