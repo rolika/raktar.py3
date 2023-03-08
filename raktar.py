@@ -27,7 +27,7 @@ import os #ikon miatti különbség kezeléséhez
 from szam_megjelenites import *
 
 PROGRAM = 'Készlet-nyilvántartó'
-VERZIO = '027'
+VERZIO = '030'
 WINDOWS_IKON = 'wevik.ico'
 LINUX_IKON = 'wevik.gif'
 ADATBAZIS = 'adatok.db'
@@ -86,7 +86,7 @@ class RaktarKeszlet(Frame):
         #előtagok
         frm_elotag = Frame(self)
         frm_elotag.grid(row = 0, column = 0, rowspan = 4, sticky = NW)
-        elotag = ('Cikkszám', 'Készlet', 'Készlet értéke', 'Kiválasztás értéke', 'Raktár értéke', 'Megnevezés', 'Gyártó', 'Leiras', 'Megjegyzés', 'Hely/projektszám', 'Egység', 'Egységár', 'Készlet-változás', 'Kiszerelés', 'Eltarthatóság', 'Gyártási idő')
+        elotag = ('Cikkszám', 'Készlet', 'Készlet értéke', 'Kiválasztás értéke', 'Raktár értéke', 'Megnevezés', 'Gyártó', 'Leírás', 'Megjegyzés', 'Hely/projektszám', 'Egység', 'Egységár', 'Kivét/bevét', 'Kiszerelés', 'Eltarthatóság', 'Gyártási idő')
         for elo in elotag:
             Label(frm_elotag, text = elo + ':', anchor = W).grid(row = elotag.index(elo), column = 0, sticky = W, padx = PADX, pady = PADY)
         #számított értékek
@@ -231,10 +231,10 @@ class RaktarKeszlet(Frame):
         self.hely.set(sor['hely'])
         self.lejarat.set(sor['lejarat'])
         self.gyartasido.set(sor['gyartasido'])
-        self.valtozas_bevitel.focus()
         self.listbox.selection_clear(0, END) #törli a kijelölést
         self.listaKijelzese() #kiírja a listát
         self.listbox.selection_set(self.cikkszamok.index(cikkszam)) #listán is jelöli az aktuális sort
+        self.valtozas_bevitel.focus()  # fókusz a kivét/bevéten
 
     def listaKijelzese(self):
         lista = ''
@@ -318,7 +318,7 @@ class RaktarKeszlet(Frame):
                     if not messagebox.askokcancel(title=sor["megnevezes"],
                             message="""Ez beállít {} {}-t új készletként.\nBiztos vagy benne?""".format(uj_keszlet, sor["egyseg"])):
                         return
-                if uj_keszlet >= 0: #ha érvényes az új készlet, beírja, egyébként nem történik semmi
+                if uj_keszlet >= 0: #ha érvényes az új készlet, beírja, egyébként figyelmeztet
                     self.kapcsolat.execute('INSERT INTO raktar_naplo(cikkszam, egyseg, egysegar, valtozas, datum, projektszam) VALUES (?, ?, ?, ?, ?, ?)', (self.cikkszam.get(), self.egyseg.get(), egysegar, valtozas, datumbelyeg, self.hely.get())) #csak a +- változást menti
                     self.kapcsolat.execute('UPDATE raktar SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?', (uj_keszlet, datumbelyeg, self.cikkszam.get()))
                     self.kapcsolat.commit()
