@@ -20,6 +20,7 @@
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from time import strftime #időbélyeghez
 import sqlite3
 import os #ikon miatti különbség kezeléséhez
@@ -85,7 +86,7 @@ class RaktarKeszlet(Frame):
         #előtagok
         frm_elotag = Frame(self)
         frm_elotag.grid(row = 0, column = 0, rowspan = 4, sticky = NW)
-        elotag = ('Cikkszám', 'Készlet', 'Készlet értéke', 'Kiválasztás értéke', 'Raktár értéke', 'Megnevezés', 'Gyártó', 'Leiras', 'Megjegyzés', 'Hely/cél', 'Egység', 'Egységár', 'Készlet-változás', 'Kiszerelés', 'Eltarthatóság', 'Gyártási idő')
+        elotag = ('Cikkszám', 'Készlet', 'Készlet értéke', 'Kiválasztás értéke', 'Raktár értéke', 'Megnevezés', 'Gyártó', 'Leiras', 'Megjegyzés', 'Hely/projektszám', 'Egység', 'Egységár', 'Készlet-változás', 'Kiszerelés', 'Eltarthatóság', 'Gyártási idő')
         for elo in elotag:
             Label(frm_elotag, text = elo + ':', anchor = W).grid(row = elotag.index(elo), column = 0, sticky = W, padx = PADX, pady = PADY)
         #számított értékek
@@ -118,8 +119,8 @@ class RaktarKeszlet(Frame):
         b = ttk.Entry(frm_hosszu_mezo, width = HOSSZU_MEZO, justify = LEFT, textvariable = self.megjegyzes)
         b.grid(row = 3, column = 0, sticky = W, padx = PADX, pady = PADY)
         b.bind('<Return>', lambda e: self.tetelSzures(self.megjegyzes.get()))
-        ###raktári hely
-        b = ttk.Entry(frm_hosszu_mezo, width = HOSSZU_MEZO, justify = LEFT, textvariable = self.hely)
+        ###raktári hely vagy projektszám
+        b = ttk.Entry(frm_hosszu_mezo, width = KOZEP_MEZO, justify = LEFT, textvariable = self.hely)
         b.grid(row = 4, column = 0, sticky = W, padx = PADX, pady = PADY)
         b.bind('<Return>', lambda e: self.tetelSzures(self.hely.get()))
         ##rövid beviteli mezők
@@ -292,7 +293,7 @@ class RaktarKeszlet(Frame):
             pass  # még nem jöttem rá, ezt miért dobja
 
     def keszletValtozasa(self, event):
-         #csak meglévőt módosít! új tételt előbb menteni kell
+        # csak meglévőt módosít! új tételt előbb menteni kell
         if self.cikkszam.get(): #ha nincs cikkszám (új tétel), nem csinál semmit
             v = self.valtozas.get()
             if v: #ha üres a bemenet, nem csinál semmit
@@ -305,7 +306,7 @@ class RaktarKeszlet(Frame):
                 except:
                     egysegar = 0
                 datumbelyeg = strftime('%Y-%m-%d')
-                self.kurzor.execute('SELECT keszlet FROM raktar WHERE cikkszam = {}'.format(self.cikkszam.get()))
+                self.kurzor.execute('SELECT keszlet, megnevezes, egyseg FROM raktar WHERE cikkszam = {}'.format(self.cikkszam.get()))
                 sor = self.kurzor.fetchone()
                 keszlet = sor['keszlet']
                 uj_keszlet = valtozas
@@ -313,6 +314,10 @@ class RaktarKeszlet(Frame):
                 if v.startswith(('-', '+')):
                     uj_keszlet = keszlet + valtozas
                     szallitolevel = True
+                else:
+                    if not messagebox.askokcancel(title=sor["megnevezes"],
+                            message="""Ez beállít {} {}-t új készletként.\nBiztos vagy benne?""".format(uj_keszlet, sor["egyseg"])):
+                        return
                 if uj_keszlet >= 0: #ha érvényes az új készlet, beírja, egyébként nem történik semmi
                     self.kapcsolat.execute('INSERT INTO raktar_naplo(cikkszam, egyseg, egysegar, valtozas, datum, projektszam) VALUES (?, ?, ?, ?, ?, ?)', (self.cikkszam.get(), self.egyseg.get(), egysegar, valtozas, datumbelyeg, self.hely.get())) #csak a +- változást menti
                     self.kapcsolat.execute('UPDATE raktar SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?', (uj_keszlet, datumbelyeg, self.cikkszam.get()))
@@ -324,6 +329,15 @@ class RaktarKeszlet(Frame):
                         szallito['egyseg'] = self.egyseg.get()
                         self.szallitolevel.append(szallito)
                     self.tetelKijelzese(int(self.cikkszam.get()))
+                else:
+                    messagebox.showwarning(title="Készlethiány!",
+                                           message="{}: {} {}".\
+                                            format(sor["megnevezes"],
+                                                   sor["keszlet"],
+                                                   sor["egyseg"]))
+        else:
+            messagebox.showerror(title="Hiba!",
+                                 message="Előbb hozz létre új tételt!")
 
     def tetelMentese(self):
         try:
@@ -369,6 +383,7 @@ class RaktarKeszlet(Frame):
         self.megnevezes_bevitel.focus()
 
     def tetelSzures(self, szuro):
+        print("Szűrés a {} kifejezésre.".format(szuro))
         szuro = szuro.lower()
         self.cikkszamok.clear()
         self.kurzor.execute('SELECT cikkszam, megnevezes, gyarto, leiras, megjegyzes, hely FROM raktar ORDER BY megnevezes')
@@ -414,6 +429,10 @@ class RaktarKeszlet(Frame):
         print('_______________________________________________________________________________')
 
     def szallitoLevelExport(self):
+        if not self.hely.get():
+            messagebox.showwarning(title="Hiány!",
+                                   message="Kérlek, adj meg egy projektszámot!")
+            return
         sorszam = 1
         datumbelyeg_file = strftime('%Y%m%d%H%M%S')
         datumbelyeg_kijelzo = strftime('%Y.%m.%d.')
@@ -439,15 +458,16 @@ class RaktarKeszlet(Frame):
         
         f.write('\n\n\n\n')
         f.write('\n{:^79}\n'.format('_____________________          _____________________'))
-        f.write('{:^79}\n'.format('Szállító                         Vevő'))
+        f.write('{:^79}\n'.format('kiállította                     átvette'))
         f.close()
-        print('Szállítólevél exportálva.')
+        messagebox.showinfo(title=self.hely.get(),
+                            message="Szállítólevél exportálva.")
 
     def raktarExport(self):
         sorszam = 1
         datumbelyeg_file = strftime('%Y%m%d%H%M%S')
         datumbelyeg_kijelzo = strftime('%Y.%m.%d.')
-        f = open('raktar{}.txt'.format(datumbelyeg_file),'w')
+        f = open('szallitolevelek/raktar{}.txt'.format(datumbelyeg_file),'w')
         f.write(SZERVEZET)
         f.write('\n{:_^79}\n'.format('R A K T Á R K É S Z L E T'))
         f.write('\nSorszám_Megnevezés_______________________Készlet_______Egységár________Érték___\n\n')
@@ -462,7 +482,8 @@ class RaktarKeszlet(Frame):
         f.write('Raktár értéke összesen:                                         {:>12} Ft\n'.format(ezresv(self.raktarErtek())))
         f.write('\nKelt: Herend, {}\n'.format(datumbelyeg_kijelzo))
         f.close()
-        print('Raktárkészlet exportálva.')
+        messagebox.showinfo(title=datumbelyeg_kijelzo,
+                            message="Raktárkészlet exportálva.")
 
 if __name__ == '__main__':
     foProgram()
