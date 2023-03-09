@@ -31,7 +31,8 @@ VERZIO = '030'
 WINDOWS_IKON = 'wevik.ico'
 LINUX_IKON = 'wevik.gif'
 ADATBAZIS = 'adatok.db'
-SZERVEZET = 'Pohlen-Dach Hungária Bt.\n8440-Herend\nDózsa utca 49.'
+SZERVEZET = ['Pohlen-Dach Hungária Bt.', '8440-Herend', 'Dózsa utca 49.']
+VEVO = ["", "", ""]
 
 #grid-jellemzők
 HOSSZU_MEZO = 42
@@ -315,7 +316,7 @@ class RaktarKeszlet(Frame):
                 if v.startswith(('-', '+')):
                     uj_keszlet = keszlet + valtozas
                     szallitolevel = True
-                    mozgas = "Kivettél" if v.startswith("-") else "Bevételeztél"
+                    mozgas = "Kivét" if v.startswith("-") else "Bevét"
                 else:
                     if not messagebox.askokcancel(title=sor["megnevezes"],
                             message="""Ez beállít {} {}-t új készletként.\nBiztos vagy benne?""".format(uj_keszlet, sor["egyseg"])):
@@ -332,10 +333,10 @@ class RaktarKeszlet(Frame):
                         self.szallitolevel.append(szallito)
                     self.tetelKijelzese(int(self.cikkszam.get()))
                     if mozgas:  # beállításnál nincs értelme
-                        print("{} {} {} {} -t.".format(mozgas,
-                                                       valtozas,
-                                                       self.egyseg.get(),
-                                                       self.megnevezes.get()))
+                        print("{}: {} {} {}".format(mozgas,
+                                                    abs(valtozas),
+                                                    self.egyseg.get(),
+                                                    self.megnevezes.get()))
                 else:
                     messagebox.showwarning(title="Készlethiány!",
                                            message="{}: {} {}".\
@@ -445,14 +446,10 @@ class RaktarKeszlet(Frame):
         datumbelyeg_kijelzo = strftime('%Y.%m.%d.')
         f = open('szallitolevelek/szallito{}.txt'.format(datumbelyeg_file),'w')
         f.write('\n{:_^79}\n'.format('S Z Á L L Í T Ó L E V É L'))
-        f.write('{:>79}'.format('száma: {}{}\n'.format(SZERVEZET[0], datumbelyeg_file)))        
-        szallito = SZERVEZET.split('\n')
-        vevo = self.hely.get()
-        vevo = vevo.split('\\')
-        l = len(vevo)
-        if l < 3: #hogy mindenképpen kiírja legalább a szállítót
-            for i in range(3 - l):
-                vevo.append("")        
+        f.write('{:>79}'.format('száma: {}{}\n'.format(SZERVEZET[0][0], datumbelyeg_file)))        
+        szallito = SZERVEZET
+        vevo = VEVO
+        vevo[0] = self.hely.get()
         f.write('\nSzállító:________________________________Vevő:_________________________________')
         for sor in zip(szallito, vevo):
             f.write('\n{:<41}{}'.format(sor[0], sor[1]))        
