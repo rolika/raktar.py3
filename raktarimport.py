@@ -48,9 +48,9 @@ TermekRekord = namedtuple("TermekRekord",
 kapcsolat = adatbazisInicializalasa(ADATBAZIS)
 datumbelyeg = strftime("%Y-%m-%d")
 
-with open("keszletkivonat.csv") as raktarkeszlet:
-    for termek in map(TermekRekord._make, csv.reader(raktarkeszlet, delimiter=",")):
-        if termek.csoport:  # üres sorokat kihagyjuk
+with open("keszletkivonat.csv") as keszlet:
+    for termek in map(TermekRekord._make, csv.reader(keszlet, delimiter=",")):
+        if termek.cikkszam:  # üres sorokat kihagyjuk
             if termek.keszlet:
                 keszlet = float(termek.keszlet.replace(",", "."))
             else:
