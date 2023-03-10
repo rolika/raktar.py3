@@ -194,7 +194,7 @@ class RaktarKeszlet(Frame):
 
     def adatbazisInicializalasa(self):
         self.kapcsolat = sqlite3.connect(ADATBAZIS)
-        self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar(cikkszam INTEGER PRIMARY KEY ASC, keszlet, megnevezes, gyarto, leiras, megjegyzes, egyseg, egysegar, kiszereles, hely, lejarat, gyartasido, letrehozas, utolso_modositas)')
+        self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar(cikkszam INTEGER PRIMARY KEY ASC, keszlet, megnevezes, gyarto, leiras, megjegyzes, egyseg, egysegar, kiszereles, hely, lejarat, gyartasido, szin, letrehozas, utolso_modositas)')
         self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar_naplo(azonosito INTEGER PRIMARY KEY ASC, cikkszam INTEGER, megnevezes, egyseg, egysegar, valtozas, datum, projektszam)')
         self.kapcsolat.row_factory = sqlite3.Row
         self.kurzor = self.kapcsolat.cursor()
@@ -246,6 +246,13 @@ class RaktarKeszlet(Frame):
             egy_sor = egy_sor.replace(' ', '_')
             lista += (egy_sor + ' ')
         self.lista.set(lista)
+        for i, cikkszam in enumerate(self.cikkszamok):
+            self.kurzor.execute('SELECT szin FROM raktar WHERE cikkszam = {}'.format(cikkszam))
+            sor = self.kurzor.fetchone()
+            if sor["szin"]:
+                alap, valaszott = sor["szin"].split(" ")
+                if alap:
+                    self.listbox.itemconfig(i, bg=alap, selectbackground=valaszott)
 
     def kivalasztasErteke(self):
         raktarertek = 0

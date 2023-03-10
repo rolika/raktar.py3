@@ -23,7 +23,8 @@ def adatbazisInicializalasa(adatbazis):
         kiszereles, 
         hely, 
         lejarat, 
-        gyartasido, 
+        gyartasido,
+        szin,
         letrehozas, 
         utolso_modositas
         )""")
