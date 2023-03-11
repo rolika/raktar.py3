@@ -314,11 +314,6 @@ class RaktarKeszlet(Frame):
                     valtozas = szamot(v)
                 except:
                     valtozas = 0
-                try:
-                    egysegar = szamot(self.egysegar.get())
-                except:
-                    egysegar = 0
-                datumbelyeg = strftime('%Y-%m-%d')
                 self.kurzor.execute('SELECT keszlet, megnevezes, egyseg FROM raktar WHERE cikkszam = {}'.format(self.cikkszam.get()))
                 sor = self.kurzor.fetchone()
                 keszlet = sor['keszlet']
@@ -330,25 +325,27 @@ class RaktarKeszlet(Frame):
                     szallitolevel = True
                     mozgas = "Kivét" if v.startswith("-") else "Bevét"
                 else:
-                    if not messagebox.askokcancel(title=sor["megnevezes"],
-                            message="""Ez beállít {} {}-t új készletként.\nBiztos vagy benne?""".format(uj_keszlet, sor["egyseg"])):
+                    if messagebox.askokcancel(title=sor["megnevezes"], message="""Ez beállít {} {}-t új készletként.\nBiztos vagy benne?""".format(uj_keszlet, sor["egyseg"])):
+                        datumbelyeg = strftime('%Y-%m-%d')
+                        self.kapcsolat.execute("""UPDATE raktar SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?""", (uj_keszlet, datumbelyeg, self.cikkszam.get()))
+                        self.kapcsolat.commit()
+                    else:
                         return
                 if uj_keszlet >= 0: #ha érvényes az új készlet, beírja, egyébként figyelmeztet
-                    self.kapcsolat.execute('INSERT INTO raktar_naplo(cikkszam, egyseg, egysegar, valtozas, datum, projektszam) VALUES (?, ?, ?, ?, ?, ?)', (self.cikkszam.get(), self.egyseg.get(), egysegar, valtozas, datumbelyeg, self.hely.get())) #csak a +- változást menti
-                    self.kapcsolat.execute('UPDATE raktar SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?', (uj_keszlet, datumbelyeg, self.cikkszam.get()))
-                    self.kapcsolat.commit()
                     if szallitolevel:
                         szallito = {}
-                        szallito['megnevezes'] = self.megnevezes.get()
-                        szallito['mennyiseg'] = valtozas
-                        szallito['egyseg'] = self.egyseg.get()
+                        szallito['cikkszam'] = self.cikkszam.get()
+                        szallito["megnevezes"] = sor["megnevezes"]
+                        szallito['valtozas'] = valtozas
+                        szallito["keszlet"] = uj_keszlet
+                        szallito["egyseg"] = sor["egyseg"]
                         self.szallitolevel.append(szallito)
-                    self.tetelKijelzese(int(self.cikkszam.get()))
                     if mozgas:  # beállításnál nincs értelme
                         print("{}: {} {} {}".format(mozgas,
                                                     abs(valtozas),
-                                                    self.egyseg.get(),
-                                                    self.megnevezes.get()))
+                                                    sor["egyseg"],
+                                                    sor["megnevezes"]))
+                    self.valtozas.set("")
                 else:
                     messagebox.showwarning(title="Készlethiány!",
                                            message="{}: {} {}".\
@@ -450,7 +447,7 @@ class RaktarKeszlet(Frame):
         print('{:_^79}'.format('S Z Á L L Í T Ó L E V É L'))
         print('\nSorszám__Megnevezés____________________________________________Mennyiség_Egység\n')
         for sor in self.szallitolevel:
-            print('{:>6}   {:<50} {:>12} {}'.format(format(sorszam, '0=5'), sor['megnevezes'][0:49], ezresv(format(abs(sor['mennyiseg']), '.2f')), sor['egyseg']))
+            print('{:>6}   {:<50} {:>12} {}'.format(format(sorszam, '0=5'), sor['megnevezes'][0:49], ezresv(format(abs(sor['valtozas']), '.2f')), sor['egyseg']))
             sorszam += 1
         print('_______________________________________________________________________________')
 
@@ -460,6 +457,7 @@ class RaktarKeszlet(Frame):
                                    message="Kérlek, adj meg egy projektszámot!")
             return
         sorszam = 1
+        datumbelyeg = strftime('%Y-%m-%d')
         datumbelyeg_file = strftime('%Y%m%d%H%M%S')
         datumbelyeg_kijelzo = strftime('%Y.%m.%d.')
         f = open('szallitolevelek/szallito{}.txt'.format(datumbelyeg_file),'w')
@@ -473,8 +471,11 @@ class RaktarKeszlet(Frame):
             f.write('\n{:<41}{}'.format(sor[0], sor[1]))        
         f.write('\n\nSorszám__Megnevezés____________________________________________Mennyiség_Egység\n\n')
         for sor in self.szallitolevel:
-            f.write('{:>6}   {:<50} {:>12} {}\n'.format(format(sorszam, '0=5'), sor['megnevezes'][0:49], ezresv(format(abs(sor['mennyiseg']), '.2f')), sor['egyseg']))
-            sorszam += 1
+            self.kapcsolat.execute('INSERT INTO raktar_naplo(cikkszam, egyseg, valtozas, datum, projektszam) VALUES (?, ?, ?, ?, ?)', (sor["cikkszam"], sor["egyseg"], sor["valtozas"], datumbelyeg, self.hely.get())) #csak a +- változást menti
+            self.kapcsolat.execute('UPDATE raktar SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?', (sor["keszlet"], datumbelyeg, sor["cikkszam"]))
+            f.write('{:>6}   {:<50} {:>12} {}\n'.format(format(sorszam, '0=5'), sor['megnevezes'][0:49], ezresv(format(abs(sor['valtozas']), '.2f')), sor['egyseg']))
+            sorszam += 1        
+        self.kapcsolat.commit()
         f.write('_______________________________________________________________________________\n')
         f.write('\nKelt: Herend, {}\n'.format(datumbelyeg_kijelzo))
         
@@ -484,6 +485,7 @@ class RaktarKeszlet(Frame):
         f.close()
         messagebox.showinfo(title=self.hely.get(),
                             message="Szállítólevél exportálva.")
+        self.tetelKijelzese(int(self.cikkszam.get()))
 
     def raktarExport(self):
         sorszam = 1
