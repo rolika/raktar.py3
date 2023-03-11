@@ -29,8 +29,8 @@ from szam_megjelenites import *
 __version__ = "0.33"
 
 PROGRAM = 'Készlet-nyilvántartó'
-WINDOWS_IKON = 'wevik.ico'
-LINUX_IKON = 'wevik.gif'
+WINDOWS_IKON = 'pohlen.ico'
+LINUX_IKON = 'pohlen.gif'
 ADATBAZIS = 'adatok.db'
 SZERVEZET = ['Pohlen-Dach Hungária Bt.', '8440-Herend', 'Dózsa utca 49.']
 VEVO = ["", "", ""]
