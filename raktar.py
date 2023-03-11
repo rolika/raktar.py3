@@ -33,6 +33,7 @@ LINUX_IKON = 'wevik.gif'
 ADATBAZIS = 'adatok.db'
 SZERVEZET = ['Pohlen-Dach Hungária Bt.', '8440-Herend', 'Dózsa utca 49.']
 VEVO = ["", "", ""]
+JELOLOSZIN = ("green", "darkgreen")
 
 #grid-jellemzők
 HOSSZU_MEZO = 42
@@ -191,10 +192,12 @@ class RaktarKeszlet(Frame):
         self.listbox.bind('<Button-5>', lambda e: self.listbox.yview_scroll(1, UNITS))
         self.listbox.bind('<MouseWheel>', lambda event: self.listbox.yview_scroll(int(event.delta / 120), UNITS))
         v_scroll['command'] = self.listbox.yview
+        ttk.Button(self.frm_lista, text="színez", width=GOMB_SZELES, command=self.megjelol)\
+        .grid(row=1, column=0, padx=PADX, pady=PADY)
 
     def adatbazisInicializalasa(self):
         self.kapcsolat = sqlite3.connect(ADATBAZIS)
-        self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar(cikkszam INTEGER PRIMARY KEY ASC, keszlet, megnevezes, gyarto, leiras, megjegyzes, egyseg, egysegar, kiszereles, hely, lejarat, gyartasido, letrehozas, utolso_modositas)')
+        self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar(cikkszam INTEGER PRIMARY KEY ASC, keszlet, megnevezes, gyarto, leiras, megjegyzes, egyseg, egysegar, kiszereles, hely, lejarat, gyartasido, szin, letrehozas, utolso_modositas)')
         self.kapcsolat.execute('CREATE TABLE IF NOT EXISTS raktar_naplo(azonosito INTEGER PRIMARY KEY ASC, cikkszam INTEGER, megnevezes, egyseg, egysegar, valtozas, datum, projektszam)')
         self.kapcsolat.row_factory = sqlite3.Row
         self.kurzor = self.kapcsolat.cursor()
@@ -246,6 +249,14 @@ class RaktarKeszlet(Frame):
             egy_sor = egy_sor.replace(' ', '_')
             lista += (egy_sor + ' ')
         self.lista.set(lista)
+        for i, cikkszam in enumerate(self.cikkszamok):
+            self.kurzor.execute('SELECT szin FROM raktar WHERE cikkszam = {}'.format(cikkszam))
+            sor = self.kurzor.fetchone()
+            if sor["szin"]:
+                alap, valasztott = sor["szin"].split(" ")
+                self.listbox.itemconfig(i, bg=alap, selectbackground=valasztott)
+            else:
+                self.listbox.itemconfig(i, bg="", selectbackground="")
 
     def kivalasztasErteke(self):
         raktarertek = 0
@@ -401,6 +412,12 @@ class RaktarKeszlet(Frame):
         if len(self.cikkszamok) == 0: #ha nincs találat
             self.teljesListaKeszitese()
         self.tetelKijelzese(self.cikkszamok[0])
+    
+    def megjelol(self): 
+        valasztas = self.listbox.curselection()
+        self.kurzor.execute("UPDATE raktar SET szin = ? WHERE cikkszam = ?", (JELOLOSZIN[0] + " " + JELOLOSZIN[1], self.cikkszamok[valasztas[0]]))
+        self.kapcsolat.commit()
+        self.tetelKijelzese(self.cikkszamok[valasztas[0]])
 
     def raktarKijelzese(self):
         sorszam = 1
