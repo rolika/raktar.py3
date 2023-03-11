@@ -193,7 +193,7 @@ class RaktarKeszlet(Frame):
         self.listbox.bind('<Button-5>', lambda e: self.listbox.yview_scroll(1, UNITS))
         self.listbox.bind('<MouseWheel>', lambda event: self.listbox.yview_scroll(int(event.delta / 120), UNITS))
         v_scroll['command'] = self.listbox.yview
-        ttk.Button(self.frm_lista, text="színez", width=GOMB_SZELES, command=self.megjelol)\
+        ttk.Button(self.frm_lista, text="megjelöl", width=GOMB_SZELES, command=self.megjelol)\
         .grid(row=1, column=0, padx=PADX, pady=PADY)
 
     def adatbazisInicializalasa(self):
@@ -239,7 +239,7 @@ class RaktarKeszlet(Frame):
         self.listbox.selection_clear(0, END) #törli a kijelölést
         self.listaKijelzese() #kiírja a listát
         self.listbox.selection_set(self.cikkszamok.index(cikkszam)) #listán is jelöli az aktuális sort
-        self.valtozas_bevitel.focus()  # fókusz a kivét/bevéten
+        self.valtozas_bevitel.focus_set()  # fókusz a kivét/bevéten
 
     def listaKijelzese(self):
         lista = ''
@@ -413,7 +413,11 @@ class RaktarKeszlet(Frame):
     
     def megjelol(self): 
         valasztas = self.listbox.curselection()
-        self.kurzor.execute("UPDATE raktar SET szin = ? WHERE cikkszam = ?", (JELOLOSZIN[0] + " " + JELOLOSZIN[1], self.cikkszamok[valasztas[0]]))
+        hatterszin = self.listbox.itemcget(valasztas[0], "background")
+        if hatterszin in JELOLOSZIN:
+            self.kurzor.execute("UPDATE raktar SET szin = ? WHERE cikkszam = ?", ("", self.cikkszamok[valasztas[0]]))
+        else:
+            self.kurzor.execute("UPDATE raktar SET szin = ? WHERE cikkszam = ?", (JELOLOSZIN[0] + " " + JELOLOSZIN[1], self.cikkszamok[valasztas[0]]))
         self.kapcsolat.commit()
         self.tetelKijelzese(self.cikkszamok[valasztas[0]])
 
