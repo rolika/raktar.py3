@@ -26,8 +26,9 @@ import sqlite3
 import os #ikon miatti különbség kezeléséhez
 from szam_megjelenites import *
 
+__version__ = "0.33"
+
 PROGRAM = 'Készlet-nyilvántartó'
-VERZIO = '030'
 WINDOWS_IKON = 'wevik.ico'
 LINUX_IKON = 'wevik.gif'
 ADATBAZIS = 'adatok.db'
@@ -55,7 +56,7 @@ class RaktarKeszlet(Frame):
             self.master.tk.call('wm', 'iconphoto', self.master._w, ikon)
         else:
             self.master.iconbitmap(default = WINDOWS_IKON)
-        self.master.title(PROGRAM + " v" + VERZIO)
+        self.master.title(PROGRAM + " v" + __version__)
         self.grid()
         self.vezerloValtozok()
         self.widgetekElhelyezese()
@@ -306,7 +307,7 @@ class RaktarKeszlet(Frame):
 
     def keszletValtozasa(self, event):
         # csak meglévőt módosít! új tételt előbb menteni kell
-        if self.cikkszam.get(): #ha nincs cikkszám (új tétel), nem csinál semmit
+        if self.cikkszam.get(): #ha nincs cikkszám (új tétel), figyelmeztet
             v = self.valtozas.get()
             if v: #ha üres a bemenet, nem csinál semmit
                 try:
