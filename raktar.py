@@ -640,8 +640,8 @@ class RaktarKeszlet(Frame):
                                leiras,
                                megjegyzes,
                                egyseg,
-                               egysegar, k
-                               iszereles,
+                               egysegar,
+                               kiszereles,
                                hely,
                                lejarat,
                                gyartasido,
@@ -730,13 +730,13 @@ r________Érték___\n")
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
             if sor["keszlet"]:
-                print("{:>6}  {:<28} {:>8} {} {:>9} Ft/{} {:>11} Ft"\
+                print("{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{} {:>11} Ft"\
                       .format(format(sorszam, "0=5"),
                               sor["megnevezes"][0:28],
                               ezresv(format(sor["keszlet"], ".2f")),
-                              sor["egyseg"],
+                              sor["egyseg"][:3],
                               ezresv(sor["egysegar"]),
-                              sor["egyseg"],
+                              sor["egyseg"][:3],
                               ezresv(int(sor["keszlet"] * sor["egysegar"]))))
                 sorszam += 1
         print("________________________________________________________________\
@@ -849,7 +849,7 @@ __________"))
         datumbelyeg_file = strftime("%Y%m%d%H%M%S")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
         f = open("szallitolevelek/raktar{}.txt".format(datumbelyeg_file),"w")
-        f.write(SZERVEZET)
+        f.write("\n".join(sor for sor in SZERVEZET))
         f.write("\n{:_^79}\n".format("R A K T Á R K É S Z L E T"))
         f.write("\nSorszám_Megnevezés_______________________Készlet_______Egysé\
 gár________Érték___\n\n")
@@ -861,13 +861,13 @@ gár________Érték___\n\n")
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
             if sor["keszlet"]:
-                f.write("{:>6}  {:<28} {:>8} {} {:>9} Ft/{} {:>11} Ft\n"\
+                f.write("{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{} {:>11} Ft\n"\
                         .format(format(sorszam, "0=5"),
                                 sor["megnevezes"][0:28],
                                 ezresv(format(sor["keszlet"], ".2f")),
-                                sor["egyseg"],
+                                sor["egyseg"][:3],
                                 ezresv(sor["egysegar"]),
-                                sor["egyseg"],
+                                sor["egyseg"][:3],
                                 ezresv(int(sor["keszlet"] * sor["egysegar"]))))
                 sorszam += 1
         f.write("______________________________________________________________\
