@@ -600,6 +600,7 @@ class RaktarKeszlet(Frame):
         datumbelyeg = strftime("%Y-%m-%d")
         # ha van (kijelzett!) cikkszám, csak módosít
         if self.cikkszam.get():
+            fajta = "módosítva"
             self.kapcsolat.execute("""
             UPDATE raktar
             SET megnevezes = ?,
@@ -631,6 +632,7 @@ class RaktarKeszlet(Frame):
             self.keszletValtozasa(1)
         # ha nincs, egy új bejegyzés, készlet-változás lesz a kiinduló készlet
         else:
+            fajta = "mentve, mint új tétel"
             if valtozas < 0:
                 valtozas = 0
             self.kapcsolat.execute("""
@@ -671,6 +673,7 @@ class RaktarKeszlet(Frame):
             self.tetelKijelzese(self.kurzor.execute("""
             SELECT last_insert_rowid()
             """).fetchone()[0])
+        print("{} {}.".format(megnevezes, fajta))
 
     def ujTetel(self):
         self.cikkszamok.clear()
