@@ -24,7 +24,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from time import strftime  # időbélyeghez
 import sqlite3
-import os  # ikon miatti különbség kezeléséhez
+import os
+import re
 
 
 from szam_megjelenites import *
@@ -40,6 +41,7 @@ ADATBAZIS = "adatok.db"
 SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
 VEVO = ["", "", ""]
 JELOLOSZIN = ("green", "darkgreen")
+EXPORTFOLDER = "szallitolevelek/"
 
 
 #grid-jellemzők
@@ -788,24 +790,24 @@ _Mennyiség_Egység\n")
 _______________")
 
     def szallitoLevelExport(self):
-        if not self.hely.get():
+        if not self.szallitolevel:
+            messagebox.showerror(title="Hiba!",
+                                 message="Üres a szállítólevél!")
+            return
+        if not valid_projektszam(self.hely.get()):
             messagebox.showwarning(title="Hiány!",
                                    message="Kérlek, adj meg egy projektszámot!")
             return
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
-        datumbelyeg_file = strftime("%Y%m%d%H%M%S")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        f = open("szallitolevelek/szallito{}.txt".format(datumbelyeg_file),"w")
+        filenev = szallitolevel_fileneve(self.hely.get())
+        f = open(EXPORTFOLDER + filenev + ".txt", "w")
         f.write("\n{:_^79}\n".format("S Z Á L L Í T Ó L E V É L"))
-        f.write("{:>79}".format("száma: {}{}\n".format(SZERVEZET[0][0],
-                                                       datumbelyeg_file)))
-        szallito = SZERVEZET
-        vevo = VEVO
-        vevo[0] = self.hely.get()
+        f.write("{:>79}".format("száma: {}\n".format(filenev)))
         f.write("\nSzállító:________________________________Vevő:______________\
 ___________________")
-        for sor in zip(szallito, vevo):
+        for sor in zip(SZERVEZET, VEVO):
             f.write("\n{:<41}{}".format(sor[0], sor[1]))
         f.write("\n\nSorszám__Megnevezés_______________________________________\
 _____Mennyiség_Egység\n\n")
@@ -851,7 +853,7 @@ __________"))
         sorszam = 1
         datumbelyeg_file = strftime("%Y%m%d%H%M%S")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        f = open("szallitolevelek/raktar{}.txt".format(datumbelyeg_file),"w")
+        f = open("{}raktar{}.txt".format(EXPORTFOLDER, datumbelyeg_file),"w")
         f.write("\n".join(sor for sor in SZERVEZET))
         f.write("\n{:_^79}\n".format("R A K T Á R K É S Z L E T"))
         f.write("\nSorszám_Megnevezés_______________________Készlet_______Egysé\
@@ -883,6 +885,38 @@ _________________\n")
         f.close()
         messagebox.showinfo(title=datumbelyeg_kijelzo,
                             message="Raktárkészlet exportálva.")
+
+
+def valid_projektszam(projektszam: str) -> re.match:
+    """A projektszám éé/s vagy éé/ss vagy éé/sss alakban elfogadható."""
+    pattern = r"(?P<ev>\d{2})\/(?P<szam>\d{1,3})"
+    projektszam_regex = re.compile(pattern)
+    return projektszam_regex.fullmatch(projektszam)
+
+
+def filenev_projektszam(projektszam: str) -> str:
+    """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
+    alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
+    helyet. Ide már valid projektszám érkezik."""
+    mo = valid_projektszam(projektszam)
+    return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
+
+
+def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
+    """A filenév így néz ki: 23_076_2, azaz ahány projektszámmal kezdődő file-t
+    (szállítólevelet) talál, eggyel több lesz a következő szám. Ide már valid
+    projektszám érkezik."""
+    kovetkezo_szam = 1  # a számozás 1-gyel kezdődik
+    for nev in os.listdir(EXPORTFOLDER):
+        print(nev)
+        if nev.startswith(filenev_projektszam(projektszam)):
+            kovetkezo_szam += 1
+    return kovetkezo_szam
+
+
+def szallitolevel_fileneve(projektszam: str) -> str:
+    return "{}_{}".format(filenev_projektszam(projektszam),
+                          kovetkezo_szallitolevel_szama(projektszam))
 
 
 def foProgram():
