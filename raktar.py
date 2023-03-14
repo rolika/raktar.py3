@@ -908,7 +908,6 @@ def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
     projektszám érkezik."""
     kovetkezo_szam = 1  # a számozás 1-gyel kezdődik
     for nev in os.listdir(EXPORTFOLDER):
-        print(nev)
         if nev.startswith(filenev_projektszam(projektszam)):
             kovetkezo_szam += 1
     return kovetkezo_szam
