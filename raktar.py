@@ -570,8 +570,8 @@ class RaktarKeszlet(Frame):
                         messagebox\
                         .showinfo(title="Törölve a szállítólevélről:",
                             message="{}:\n {} {}".format(sor["megnevezes"],
-                                                        valtozas,
-                                                        sor["egyseg"]))
+                                                         valtozas,
+                                                         sor["egyseg"]))
                         self.valtozas.set("")
                         return
 
