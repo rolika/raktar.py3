@@ -536,8 +536,14 @@ class RaktarKeszlet(Frame):
                 sor = self.kurzor.fetchone()
                 keszlet = sor["keszlet"]
                 uj_keszlet = valtozas
+
                 mozgas = False  # kivét vagy bevét
                 if v.startswith(("-", "+")):
+                    # van már a szállítóban azonos tétel?
+                    for meglevo in self.szallitolevel:
+                        if self.cikkszam.get() == meglevo["cikkszam"]:
+                            # ha igen, változik a készlet az adatbázishoz képest
+                            keszlet += meglevo["valtozas"]
                     uj_keszlet = keszlet + valtozas
                     mozgas = "Kivét" if v.startswith("-") else "Bevét"
                 else:
@@ -588,7 +594,7 @@ class RaktarKeszlet(Frame):
                     messagebox.showwarning(title="Készlethiány!",
                                            message="{}: {} {}".\
                                             format(sor["megnevezes"],
-                                                   sor["keszlet"],
+                                                   keszlet,
                                                    sor["egyseg"]))
         else:
             messagebox.showerror(title="Hiba!",
@@ -860,6 +866,7 @@ _________________\n")
 __________"))
         f.write("{:^79}\n".format("kiállította                     átvette"))
         f.close()
+        self.szallitolevel.clear()
         messagebox.showinfo(title=self.hely.get(),
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
