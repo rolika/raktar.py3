@@ -554,6 +554,21 @@ class RaktarKeszlet(Frame):
                         self.kapcsolat.commit()
                     else:
                         return
+
+                # van ellenkező előjellel ugyanolyan tétel?
+                for meglevo in self.szallitolevel:
+                    # névazonosságot keres, nem cikkszámot
+                    if sor["megnevezes"] == meglevo["megnevezes"] and\
+                    valtozas == meglevo["valtozas"] * -1:
+                        self.szallitolevel.remove(meglevo)
+                        messagebox\
+                        .showinfo(title="Törölve a szállítólevélről:",
+                            message="{}:\n {} {}".format(sor["megnevezes"],
+                                                        valtozas,
+                                                        sor["egyseg"]))
+                        self.valtozas.set("")
+                        return
+
                 # ha érvényes az új készlet, beírja, egyébként figyelmeztet
                 if uj_keszlet >= 0:
                     if mozgas:
