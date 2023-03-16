@@ -53,6 +53,29 @@ PADX = 2
 PADY = 2
 
 
+class Rep:
+    """A reprezentációs osztály a terminálon kijelzésekhez és a fileexportokhoz
+    biztosít vonalat, címsort, fejlécet."""
+
+    def vonal(karakter:str="_", hossz:int=80, sorveg:str="") -> str:
+        """Megadott hosszúságú vonal rajzolása."""
+        return "".join(karakter for _ in range(hossz)) + sorveg
+
+    def cimsor(szoveg:str, sorveg:str="") -> str:
+        """A címsor csupa nagybetű, a betű között szóközzel, középre igazított,
+        alul-felül átmenő vonallal."""
+        cim = " ".join(betu.upper() for betu in szoveg)
+        return "{}{:^80}{}{}".format(Rep.vonal(), cim, Rep.vonal(), sorveg)
+    
+    def fejlec(karakter:str="_", sorveg:str="", **kwargs:dict[str,int]) -> str:
+        """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
+        melyek egymástól meghatározott távolságra vannak és karakter köti össze
+        őket."""
+        formatspec = ("{:" + karakter + "<" + str(kwargs[szo]) + "}" \
+                      for szo in kwargs)
+        return "".join(formatspec).format(*kwargs.keys()) + sorveg
+
+
 class RaktarKeszlet(Frame):
     def __init__(self, root = None):
         Frame.__init__(self, root)
