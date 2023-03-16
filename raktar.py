@@ -315,9 +315,9 @@ class RaktarKeszlet(Frame):
                    command=self.szallitoLevelKijelzese)\
                     .grid(row=0, column=0, padx=PADX, pady=PADY)
         ttk.Button(frm_gomb2,
-                   text="Töröl",
+                   text="Új",
                    width=GOMB_SZELES,
-                   command=self.szallitolevel.clear)\
+                   command=self.uj_szallitolevel)\
                     .grid(row=1, column=0, padx=PADX, pady=PADY)
         ttk.Button(frm_gomb2,
                    text="Export",
@@ -511,6 +511,10 @@ class RaktarKeszlet(Frame):
         except:
             cikkszam = self.cikkszamok[0]
         self.tetelKijelzese(cikkszam)
+
+    def uj_szallitolevel(self) -> None:
+        self.szallitolevel.clear()
+        messagebox.showinfo(message="Új szállítólevél.")
 
     def valasztasListabol(self, _):
         valasztas = self.listbox.curselection()
@@ -722,6 +726,8 @@ class RaktarKeszlet(Frame):
                         szuro in sor["megjegyzes"].lower() or \
                             szuro in sor["hely"].lower():
                 self.cikkszamok.append(sor["cikkszam"])
+                print(".", end="")
+        print()
         if len(self.cikkszamok) == 0:  # ha nincs találat
             self.teljesListaKeszitese()
         self.tetelKijelzese(self.cikkszamok[0])
