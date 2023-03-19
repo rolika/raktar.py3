@@ -31,7 +31,7 @@ import re
 from szam_megjelenites import *
 
 
-__version__ = "0.33"
+__version__ = "0.41"
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -65,15 +65,17 @@ class Rep:
         """A címsor csupa nagybetű, a betű között szóközzel, középre igazított,
         alul-felül átmenő vonallal."""
         cim = " ".join(betu.upper() for betu in szoveg)
-        return "{}{:^80}{}{}".format(Rep.vonal(), cim, Rep.vonal(), sorveg)
+        return "{}{}{:^80}{}{}{}".format(Rep.vonal(), sorveg, cim, sorveg, Rep.vonal(), sorveg)
     
-    def fejlec(karakter:str="_", sorveg:str="", **kwargs:dict[str,int]) -> str:
+    def fejlec(karakter:str="", sorveg:str="", **kwargs:dict[str,int]) -> str:
         """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
         melyek egymástól meghatározott távolságra vannak és karakter köti össze
-        őket."""
+        őket, aláhúzva egy folytonos vonallal."""
         formatspec = ("{:" + karakter + "<" + str(kwargs[szo]) + "}" \
                       for szo in kwargs)
-        return "".join(formatspec).format(*kwargs.keys()) + sorveg
+        fejlec = "".join(formatspec)\
+            .format(*(szo.capitalize() for szo in kwargs.keys()))
+        return fejlec + sorveg + Rep.vonal() + sorveg
 
 
 class RaktarKeszlet(Frame):
@@ -774,9 +776,12 @@ class RaktarKeszlet(Frame):
 
     def raktarKijelzese(self):
         sorszam = 1
-        print("{:_^79}".format("R A K T Á R"))
-        print("\nSorszám_Megnevezés_______________________Készlet_______Egységá\
-r________Érték___\n")
+        print(Rep.cimsor("raktárkészlet"))
+        print(Rep.fejlec(sorszám=8, 
+                         megnevezés=33, 
+                         készlet=14, 
+                         egységár=16, 
+                         érték=9))
         for cikkszam in self.cikkszamok:
             self.kurzor.execute("""
             SELECT megnevezes, keszlet, egyseg, egysegar
@@ -794,8 +799,7 @@ r________Érték___\n")
                               sor["egyseg"][:3],
                               ezresv(int(sor["keszlet"] * sor["egysegar"]))))
                 sorszam += 1
-        print("________________________________________________________________\
-_______________")
+        print(Rep.vonal())
         print("Kiválasztás értéke összesen:                                    \
 {:>12} Ft"\
               .format(ezresv(self.kivalasztasErteke())))
@@ -826,9 +830,8 @@ _______________")
 
     def szallitoLevelKijelzese(self):
         sorszam = 1
-        print("{:_^79}".format("S Z Á L L Í T Ó L E V É L"))
-        print("\nSorszám__Megnevezés___________________________________________\
-_Mennyiség_Egység\n")
+        print(Rep.cimsor("szállítólevél"))
+        print(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7))
         for sor in self.szallitolevel:
             print("{:>6}   {:<50} {:>12} {}"\
                   .format(format(sorszam, "0=5"),
@@ -836,8 +839,7 @@ _Mennyiség_Egység\n")
                           ezresv(format(abs(sor["valtozas"]), ".2f")),
                           sor["egyseg"]))
             sorszam += 1
-        print("________________________________________________________________\
-_______________")
+        print(Rep.vonal())
 
     def szallitoLevelExport(self):
         if not self.szallitolevel:
@@ -853,14 +855,13 @@ _______________")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
         filenev = szallitolevel_fileneve(self.hely.get())
         f = open(EXPORTFOLDER + filenev + ".txt", "w")
-        f.write("\n{:_^79}\n".format("S Z Á L L Í T Ó L E V É L"))
+        f.write(Rep.cimsor(szoveg="szállítólevél", sorveg="\n"))
         f.write("{:>79}".format("száma: {}\n".format(filenev)))
-        f.write("\nSzállító:________________________________Vevő:______________\
-___________________")
+        f.write("\nSzállító:                                Vevő:")
         for sor in zip(SZERVEZET, VEVO):
             f.write("\n{:<41}{}".format(sor[0], sor[1]))
-        f.write("\n\nSorszám__Megnevezés_______________________________________\
-_____Mennyiség_Egység\n\n")
+        f.write("\n")
+        f.write(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7, sorveg="\n"))
         for sor in self.szallitolevel:
             self.kapcsolat.execute("""
             INSERT INTO raktar_naplo(
@@ -886,14 +887,13 @@ _____Mennyiség_Egység\n\n")
                             sor["egyseg"]))
             sorszam += 1
         self.kapcsolat.commit()
-        f.write("______________________________________________________________\
-_________________\n")
+        f.write(Rep.vonal(sorveg="\n"))
         f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
 
         f.write("\n\n\n\n")
-        f.write("\n{:^79}\n".format("_____________________          ___________\
-__________"))
-        f.write("{:^79}\n".format("kiállította                     átvette"))
+        f.write("             ___________________          ___________________")
+        f.write("\n")
+        f.write("                 kiállította                   átvette\n")
         f.close()
         self.szallitolevel.clear()
         messagebox.showinfo(title=self.hely.get(),
@@ -906,9 +906,14 @@ __________"))
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
         f = open("{}raktar{}.txt".format(EXPORTFOLDER, datumbelyeg_file),"w")
         f.write("\n".join(sor for sor in SZERVEZET))
-        f.write("\n{:_^79}\n".format("R A K T Á R K É S Z L E T"))
-        f.write("\nSorszám_Megnevezés_______________________Készlet_______Egysé\
-gár________Érték___\n\n")
+        f.write("\n")
+        f.write(Rep.cimsor(szoveg="raktárkészlet", sorveg="\n"))
+        f.write(Rep.fejlec(sorszám=8, 
+                           megnevezés=33, 
+                           készlet=14, 
+                           egységár=16, 
+                           érték=9,
+                           sorveg="\n"))
         for cikkszam in self.cikkszamok:
             self.kurzor.execute("""
             SELECT megnevezes, keszlet, egyseg, egysegar
@@ -926,12 +931,11 @@ gár________Érték___\n\n")
                                 sor["egyseg"][:3],
                                 ezresv(int(sor["keszlet"] * sor["egysegar"]))))
                 sorszam += 1
-        f.write("______________________________________________________________\
-_________________\n")
+        f.write(Rep.vonal(sorveg="\n"))
         f.write("\nKiválasztás értéke összesen:                                \
-                    {:>12} Ft\n".format(ezresv(self.kivalasztasErteke())))
+     {:>12} Ft\n".format(ezresv(self.kivalasztasErteke())))
         f.write("Raktár értéke összesen:                                       \
-                  {:>12} Ft\n".format(ezresv(self.raktarErtek())))
+   {:>12} Ft\n".format(ezresv(self.raktarErtek())))
         f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
         f.close()
         messagebox.showinfo(title=datumbelyeg_kijelzo,
