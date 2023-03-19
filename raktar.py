@@ -128,6 +128,7 @@ class RaktarKeszlet(Frame):
                       self.raktarertek)
         # felhasználó által megadott értékek
         self.megnevezes = StringVar()
+        self.becenev = StringVar()
         self.gyarto = StringVar()
         self.leiras = StringVar()
         self.megjegyzes = StringVar()
@@ -152,6 +153,7 @@ class RaktarKeszlet(Frame):
                   "Kiválasztás értéke",
                   "Raktár értéke",
                   "Megnevezés",
+                  "Becenév",
                   "Gyártó",
                   "Leírás",
                   "Megjegyzés",
@@ -388,6 +390,7 @@ class RaktarKeszlet(Frame):
             cikkszam INTEGER PRIMARY KEY ASC,
             keszlet,
             megnevezes,
+            becenev,
             gyarto,
             leiras,
             megjegyzes,
@@ -446,6 +449,7 @@ class RaktarKeszlet(Frame):
         self.kivalasztas_erteke.set(ezresv(self.kivalasztasErteke()))
         self.raktarertek.set(ezresv(self.raktarErtek()))
         self.megnevezes.set(sor["megnevezes"])
+        self.becenev.set(sor["becenev"])
         self.gyarto.set(sor["gyarto"])
         self.leiras.set(sor["leiras"])
         self.megjegyzes.set(sor["megjegyzes"])
@@ -656,6 +660,7 @@ class RaktarKeszlet(Frame):
             self.kapcsolat.execute("""
             UPDATE raktar
             SET megnevezes = ?,
+                becenev = ?,
                 gyarto = ?,
                 leiras = ?,
                 megjegyzes = ?,
@@ -668,6 +673,7 @@ class RaktarKeszlet(Frame):
                 utolso_modositas = ?
             WHERE cikkszam = ?
             """, (megnevezes,
+                  self.becenev.get(),
                   self.gyarto.get(),
                   self.leiras.get(),
                   self.megjegyzes.get(),
@@ -690,6 +696,7 @@ class RaktarKeszlet(Frame):
             self.kapcsolat.execute("""
             INSERT INTO raktar(keszlet,
                                megnevezes,
+                               becenev,
                                gyarto,
                                leiras,
                                megjegyzes,
@@ -701,9 +708,10 @@ class RaktarKeszlet(Frame):
                                gyartasido,
                                letrehozas,
                                utolso_modositas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (valtozas,
                   megnevezes,
+                  self.becenev.get(),
                   self.gyarto.get(),
                   self.leiras.get(),
                   self.megjegyzes.get(),
@@ -740,16 +748,17 @@ class RaktarKeszlet(Frame):
         szuro = szuro.lower()
         self.cikkszamok.clear()
         self.kurzor.execute("""
-        SELECT cikkszam, megnevezes, gyarto, leiras, megjegyzes, hely
+        SELECT cikkszam, megnevezes, becenev, gyarto, leiras, megjegyzes, hely
         FROM raktar
         ORDER BY megnevezes
         """)
         for sor in self.kurzor.fetchall():
             if szuro in sor["megnevezes"].lower() or \
-                szuro in sor["gyarto"].lower() or \
-                    szuro in sor["leiras"].lower() or \
-                        szuro in sor["megjegyzes"].lower() or \
-                            szuro in sor["hely"].lower():
+                szuro in sor["becenev"].lower() or \
+                    szuro in sor["gyarto"].lower() or \
+                        szuro in sor["leiras"].lower() or \
+                            szuro in sor["megjegyzes"].lower() or \
+                                szuro in sor["hely"].lower():
                 self.cikkszamok.append(sor["cikkszam"])
                 print(".", end="")
         print()
@@ -860,7 +869,7 @@ _______________")
         f.write("\nSzállító:                                Vevő:")
         for sor in zip(SZERVEZET, VEVO):
             f.write("\n{:<41}{}".format(sor[0], sor[1]))
-        f.write("\n")
+        f.write("\n\n")
         f.write(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7, sorveg="\n"))
         for sor in self.szallitolevel:
             self.kapcsolat.execute("""
