@@ -26,6 +26,7 @@ from time import strftime  # időbélyeghez
 import sqlite3
 import os
 import re
+import subprocess
 
 
 from szam_megjelenites import *
@@ -66,7 +67,7 @@ class Rep:
         alul-felül átmenő vonallal."""
         cim = " ".join(betu.upper() for betu in szoveg)
         return "{}{}{:^80}{}{}{}".format(Rep.vonal(), sorveg, cim, sorveg, Rep.vonal(), sorveg)
-    
+
     def fejlec(karakter:str="", sorveg:str="", **kwargs:dict[str,int]) -> str:
         """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
         melyek egymástól meghatározott távolságra vannak és karakter köti össze
@@ -786,10 +787,10 @@ class RaktarKeszlet(Frame):
     def raktarKijelzese(self):
         sorszam = 1
         print(Rep.cimsor("raktárkészlet"))
-        print(Rep.fejlec(sorszám=8, 
-                         megnevezés=33, 
-                         készlet=14, 
-                         egységár=16, 
+        print(Rep.fejlec(sorszám=8,
+                         megnevezés=33,
+                         készlet=14,
+                         egységár=16,
                          érték=9))
         for cikkszam in self.cikkszamok:
             self.kurzor.execute("""
@@ -863,7 +864,8 @@ _______________")
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
         filenev = szallitolevel_fileneve(self.hely.get())
-        f = open(EXPORTFOLDER + filenev + ".txt", "w")
+        dirfilenev = EXPORTFOLDER + filenev + ".txt"
+        f = open(dirfilenev, "w")
         f.write(Rep.cimsor(szoveg="szállítólevél", sorveg="\n"))
         f.write("{:>79}".format("száma: {}\n".format(filenev)))
         f.write("\nSzállító:                                Vevő:")
@@ -908,19 +910,25 @@ _______________")
         messagebox.showinfo(title=self.hely.get(),
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
+        if os.name == "posix":
+            tarsitott = "gedit"
+        else:
+            tarsitott = "notepad.exe"
+        subprocess.run([tarsitott, " ", dirfilenev])
 
     def raktarExport(self):
         sorszam = 1
         datumbelyeg_file = strftime("%Y%m%d%H%M%S")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        f = open("{}raktar{}.txt".format(EXPORTFOLDER, datumbelyeg_file),"w")
+        filenev = "{}raktar{}.txt".format(EXPORTFOLDER, datumbelyeg_file)
+        f = open(filenev,"w")
         f.write("\n".join(sor for sor in SZERVEZET))
         f.write("\n")
         f.write(Rep.cimsor(szoveg="raktárkészlet", sorveg="\n"))
-        f.write(Rep.fejlec(sorszám=8, 
-                           megnevezés=33, 
-                           készlet=14, 
-                           egységár=16, 
+        f.write(Rep.fejlec(sorszám=8,
+                           megnevezés=33,
+                           készlet=14,
+                           egységár=16,
                            érték=9,
                            sorveg="\n"))
         for cikkszam in self.cikkszamok:
@@ -949,6 +957,11 @@ _______________")
         f.close()
         messagebox.showinfo(title=datumbelyeg_kijelzo,
                             message="Raktárkészlet exportálva.")
+        if os.name == "posix":
+            tarsitott = "gedit"
+        else:
+            tarsitott = "notepad.exe"
+        subprocess.run([tarsitott, " ", filenev])
 
 
 def valid_projektszam(projektszam: str) -> re.match:
