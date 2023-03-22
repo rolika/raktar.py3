@@ -910,11 +910,7 @@ _______________")
         messagebox.showinfo(title=self.hely.get(),
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
-        if os.name == "posix":
-            tarsitott = "gedit"
-        else:
-            tarsitott = "notepad.exe"
-        subprocess.run([tarsitott, " ", dirfilenev])
+        file_megnyitasa(dirfilenev)
 
     def raktarExport(self):
         sorszam = 1
@@ -957,11 +953,7 @@ _______________")
         f.close()
         messagebox.showinfo(title=datumbelyeg_kijelzo,
                             message="Raktárkészlet exportálva.")
-        if os.name == "posix":
-            tarsitott = "gedit"
-        else:
-            tarsitott = "notepad.exe"
-        subprocess.run([tarsitott, " ", filenev])
+        file_megnyitasa(filenev)
 
 
 def valid_projektszam(projektszam: str) -> re.match:
@@ -993,6 +985,14 @@ def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
 def szallitolevel_fileneve(projektszam: str) -> str:
     return "{}_{}".format(filenev_projektszam(projektszam),
                           kovetkezo_szallitolevel_szama(projektszam))
+
+
+def file_megnyitasa(filenev:str) -> None:
+    if os.name == "posix":
+        tarsitott = "gedit"
+    else:
+        tarsitott = "notepad.exe"
+    subprocess.run([tarsitott, " ", filenev])
 
 
 def foProgram():
