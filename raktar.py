@@ -238,33 +238,40 @@ class RaktarKeszlet(Frame):
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         self.megnevezes_bevitel.bind("<Return>",\
                             lambda e: self.tetelSzures(self.megnevezes.get()))
+        # becenév
+        b = ttk.Entry(frm_hosszu_mezo,
+                      width=HOSSZU_MEZO,
+                      justify=LEFT,
+                      textvariable=self.becenev)
+        b.grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.bind("<Return>", lambda e: self.tetelSzures(self.becenev.get()))
         # gyártó
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.gyarto)
-        b.grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.gyarto.get()))
         # típus
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.leiras)
-        b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.leiras.get()))
         # megjegyzés
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.megjegyzes)
-        b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.megjegyzes.get()))
         # raktári hely vagy projektszám
         b = ttk.Entry(frm_hosszu_mezo,
                       width=KOZEP_MEZO,
                       justify=LEFT,
                       textvariable=self.hely)
-        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=5, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.hely.get()))
 
         frm_rovid_mezo = Frame(self)
