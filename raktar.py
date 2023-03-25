@@ -27,6 +27,8 @@ import sqlite3
 import os
 import re
 import subprocess
+import pathlib
+from typing import Iterable
 
 
 from szam_megjelenites import *
@@ -43,6 +45,7 @@ SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
 VEVO = ["", "", ""]
 JELOLOSZIN = ("green", "darkgreen")
 EXPORTFOLDER = "szallitolevelek/"
+EXPORTEXTENSION = "txt"
 
 
 #grid-jellemzők
@@ -58,17 +61,17 @@ class Rep:
     """A reprezentációs osztály a terminálon kijelzésekhez és a fileexportokhoz
     biztosít vonalat, címsort, fejlécet."""
 
-    def vonal(karakter:str="_", hossz:int=80, sorveg:str="") -> str:
+    def vonal(karakter:str="_", hossz:int=80) -> str:
         """Megadott hosszúságú vonal rajzolása."""
-        return "".join(karakter for _ in range(hossz)) + sorveg
+        return "".join(karakter for _ in range(hossz)) + "\n"
 
-    def cimsor(szoveg:str, sorveg:str="") -> str:
+    def cimsor(szoveg:str) -> str:
         """A címsor csupa nagybetű, a betű között szóközzel, középre igazított,
         alul-felül átmenő vonallal."""
         cim = " ".join(betu.upper() for betu in szoveg)
-        return "{}{}{:^80}{}{}{}".format(Rep.vonal(), sorveg, cim, sorveg, Rep.vonal(), sorveg)
+        return "{}{:^80}{}{}".format(Rep.vonal(), cim, "\n", Rep.vonal())
 
-    def fejlec(karakter:str="", sorveg:str="", **kwargs:dict[str,int]) -> str:
+    def fejlec(karakter:str="", **kwargs:dict[str,int]) -> str:
         """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
         melyek egymástól meghatározott távolságra vannak és karakter köti össze
         őket, aláhúzva egy folytonos vonallal."""
@@ -76,7 +79,57 @@ class Rep:
                       for szo in kwargs)
         fejlec = "".join(formatspec)\
             .format(*(szo.capitalize() for szo in kwargs.keys()))
-        return fejlec + sorveg + Rep.vonal() + sorveg
+        return fejlec + "\n" + Rep.vonal()
+    
+    def stock2str(cursor:sqlite3.Cursor, articles:Iterable[int]) -> str:
+        """Build a string of the presented articles to show the stock."""
+        result = ""
+        for i, article in enumerate(articles):
+            cursor.execute("""
+            SELECT megnevezes, keszlet, egyseg, egysegar
+            FROM raktar
+            WHERE cikkszam = {};
+            """.format(article))
+            record = cursor.fetchone()
+            if record["keszlet"]:
+                result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft"\
+                    .format(format(i + 1, "0=5"),
+                        record["megnevezes"][0:28],
+                        ezresv(format(record["keszlet"], ".0f")),
+                        record["egyseg"][:3],
+                        ezresv(record["egysegar"]),
+                        record["egyseg"][:3],
+                        ezresv(int(record["keszlet"] * record["egysegar"])))
+                result += "\n"
+        return result
+
+
+class FileSession:
+    """Class to handle file operations."""
+    def __init__(self,
+                 stockfolder:str=EXPORTFOLDER,
+                 waybillfolder:str=EXPORTFOLDER,
+                 extension:str=EXPORTEXTENSION) -> None:
+        self._stockfolder = pathlib.Path(stockfolder)
+        self._waybillfolder = pathlib.Path(waybillfolder)
+        self._extension = "." + extension
+        self._create_folders()
+    
+    def _create_folders(self) -> None:
+        try:
+            os.mkdir(self._stockfolder)
+        except FileExistsError:
+            pass
+        try:
+            os.mkdir(self._waybillfolder)
+        except FileExistsError:
+            pass
+    
+    def export(self, filename:str, content:str, waybill=True) -> None:
+        destination = self._waybillfolder if waybill else self._stockfolder
+        filename = filename + self._extension
+        with open(destination / filename, "w") as f:
+            f.write(content)        
 
 
 class RaktarKeszlet(Frame):
@@ -92,6 +145,7 @@ class RaktarKeszlet(Frame):
         self.vezerloValtozok()
         self.widgetekElhelyezese()
         self.adatbazisInicializalasa()
+        self._filesession = FileSession()
         # esc-re törli a kiválasztást
         self.bind_all("<Escape>", self.kilepesKivalasztasbol)
         # első indításkor üres az adatbázis
@@ -204,33 +258,40 @@ class RaktarKeszlet(Frame):
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         self.megnevezes_bevitel.bind("<Return>",\
                             lambda e: self.tetelSzures(self.megnevezes.get()))
+        # becenév
+        b = ttk.Entry(frm_hosszu_mezo,
+                      width=HOSSZU_MEZO,
+                      justify=LEFT,
+                      textvariable=self.becenev)
+        b.grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.bind("<Return>", lambda e: self.tetelSzures(self.becenev.get()))
         # gyártó
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.gyarto)
-        b.grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.gyarto.get()))
         # típus
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.leiras)
-        b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.leiras.get()))
         # megjegyzés
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.megjegyzes)
-        b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.megjegyzes.get()))
         # raktári hely vagy projektszám
         b = ttk.Entry(frm_hosszu_mezo,
                       width=KOZEP_MEZO,
                       justify=LEFT,
                       textvariable=self.hely)
-        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=5, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.hely.get()))
 
         frm_rovid_mezo = Frame(self)
@@ -485,13 +546,13 @@ class RaktarKeszlet(Frame):
         self.lista.set(lista)
         for i, cikkszam in enumerate(self.cikkszamok):
             self.kurzor.execute("""
-            SELECT szin
+            SELECT jeloles
             FROM raktar
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
-            if sor["szin"]:
-                alap, valasztott = sor["szin"].split(" ")
+            if sor["jeloles"]:
+                alap, valasztott = sor["jeloles"].split(" ")
                 self.listbox.itemconfig(i, bg=alap, selectbackground=valasztott)
             else:
                 self.listbox.itemconfig(i, bg="", selectbackground="")
@@ -773,46 +834,41 @@ class RaktarKeszlet(Frame):
         if hatterszin in JELOLOSZIN:
             self.kurzor.execute("""
             UPDATE raktar
-            SET szin = ?
+            SET jeloles = ?
             WHERE cikkszam = ?
             """, ("", self.cikkszamok[valasztas[0]]))
         else:
             self.kurzor.execute("""
-            UPDATE raktar SET szin = ? WHERE cikkszam = ?
+            UPDATE raktar SET jeloles = ? WHERE cikkszam = ?
             """, (JELOLOSZIN[0] + " " + JELOLOSZIN[1],
                   self.cikkszamok[valasztas[0]]))
         self.kapcsolat.commit()
         self.tetelKijelzese(self.cikkszamok[valasztas[0]])
+    
+    def show_stock(self) -> str:
+        result = ""
+        result += Rep.cimsor("raktárkészlet")
+        result += Rep.fejlec(sorszám=8,
+                             megnevezés=33,
+                             készlet=14,
+                             egységár=16,
+                             érték=9)
+        result += Rep.stock2str(self.kurzor, self.cikkszamok)
+        result += Rep.vonal()
+        result += "Kiválasztás értéke összesen:                            \
+         {:>12} Ft\n".format(ezresv(self.kivalasztasErteke()))
+        result += Rep.vonal()
+        result += "{}-i állapot.\n".format(strftime("%Y.%m.%d"))
+        return result
 
     def raktarKijelzese(self):
-        sorszam = 1
-        print(Rep.cimsor("raktárkészlet"))
-        print(Rep.fejlec(sorszám=8,
-                         megnevezés=33,
-                         készlet=14,
-                         egységár=16,
-                         érték=9))
-        for cikkszam in self.cikkszamok:
-            self.kurzor.execute("""
-            SELECT megnevezes, keszlet, egyseg, egysegar
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
-            if sor["keszlet"]:
-                print("{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{} {:>11} Ft"\
-                      .format(format(sorszam, "0=5"),
-                              sor["megnevezes"][0:28],
-                              ezresv(format(sor["keszlet"], ".2f")),
-                              sor["egyseg"][:3],
-                              ezresv(sor["egysegar"]),
-                              sor["egyseg"][:3],
-                              ezresv(int(sor["keszlet"] * sor["egysegar"]))))
-                sorszam += 1
-        print(Rep.vonal())
-        print("Kiválasztás értéke összesen:                                    \
-{:>12} Ft"\
-              .format(ezresv(self.kivalasztasErteke())))
+        print(self.show_stock())
+    
+    def raktarExport(self) -> None:
+        filename = "raktar_" + strftime("%Y%m%d")
+        self._filesession.export(filename, self.show_stock(), False)
+        messagebox.showinfo(message="Raktárkészlet exportálva.")
+
 
     def valtozasKijelzese(self):
         """Ez egy nem használt funció egyelőre."""
@@ -912,49 +968,6 @@ _______________")
         self.tetelKijelzese(int(self.cikkszam.get()))
         file_megnyitasa(dirfilenev)
 
-    def raktarExport(self):
-        sorszam = 1
-        datumbelyeg_file = strftime("%Y%m%d%H%M%S")
-        datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        filenev = "{}raktar{}.txt".format(EXPORTFOLDER, datumbelyeg_file)
-        f = open(filenev,"w")
-        f.write("\n".join(sor for sor in SZERVEZET))
-        f.write("\n")
-        f.write(Rep.cimsor(szoveg="raktárkészlet", sorveg="\n"))
-        f.write(Rep.fejlec(sorszám=8,
-                           megnevezés=33,
-                           készlet=14,
-                           egységár=16,
-                           érték=9,
-                           sorveg="\n"))
-        for cikkszam in self.cikkszamok:
-            self.kurzor.execute("""
-            SELECT megnevezes, keszlet, egyseg, egysegar
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
-            if sor["keszlet"]:
-                f.write("{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{} {:>11} Ft\n"\
-                        .format(format(sorszam, "0=5"),
-                                sor["megnevezes"][0:28],
-                                ezresv(format(sor["keszlet"], ".2f")),
-                                sor["egyseg"][:3],
-                                ezresv(sor["egysegar"]),
-                                sor["egyseg"][:3],
-                                ezresv(int(sor["keszlet"] * sor["egysegar"]))))
-                sorszam += 1
-        f.write(Rep.vonal(sorveg="\n"))
-        f.write("\nKiválasztás értéke összesen:                                \
-     {:>12} Ft\n".format(ezresv(self.kivalasztasErteke())))
-        f.write("Raktár értéke összesen:                                       \
-   {:>12} Ft\n".format(ezresv(self.raktarErtek())))
-        f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
-        f.close()
-        messagebox.showinfo(title=datumbelyeg_kijelzo,
-                            message="Raktárkészlet exportálva.")
-        file_megnyitasa(filenev)
-
 
 def valid_projektszam(projektszam: str) -> re.match:
     """A projektszám éé/s vagy éé/ss vagy éé/sss alakban elfogadható."""
@@ -1002,3 +1015,5 @@ def foProgram():
 
 if __name__ == "__main__":
     foProgram()
+
+
