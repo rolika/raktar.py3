@@ -546,13 +546,13 @@ class RaktarKeszlet(Frame):
         self.lista.set(lista)
         for i, cikkszam in enumerate(self.cikkszamok):
             self.kurzor.execute("""
-            SELECT szin
+            SELECT jeloles
             FROM raktar
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
-            if sor["szin"]:
-                alap, valasztott = sor["szin"].split(" ")
+            if sor["jeloles"]:
+                alap, valasztott = sor["jeloles"].split(" ")
                 self.listbox.itemconfig(i, bg=alap, selectbackground=valasztott)
             else:
                 self.listbox.itemconfig(i, bg="", selectbackground="")
@@ -834,12 +834,12 @@ class RaktarKeszlet(Frame):
         if hatterszin in JELOLOSZIN:
             self.kurzor.execute("""
             UPDATE raktar
-            SET szin = ?
+            SET jeloles = ?
             WHERE cikkszam = ?
             """, ("", self.cikkszamok[valasztas[0]]))
         else:
             self.kurzor.execute("""
-            UPDATE raktar SET szin = ? WHERE cikkszam = ?
+            UPDATE raktar SET jeloles = ? WHERE cikkszam = ?
             """, (JELOLOSZIN[0] + " " + JELOLOSZIN[1],
                   self.cikkszamok[valasztas[0]]))
         self.kapcsolat.commit()
