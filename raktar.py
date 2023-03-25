@@ -80,7 +80,7 @@ class Rep:
         fejlec = "".join(formatspec)\
             .format(*(szo.capitalize() for szo in kwargs.keys()))
         return fejlec + "\n" + Rep.vonal()
-    
+
     def stock2str(cursor:sqlite3.Cursor, articles:Iterable[int]) -> str:
         """Build a string of the presented articles to show the stock."""
         result = ""
@@ -114,7 +114,7 @@ class FileSession:
         self._waybillfolder = pathlib.Path(waybillfolder)
         self._extension = "." + extension
         self._create_folders()
-    
+
     def _create_folders(self) -> None:
         try:
             os.mkdir(self._stockfolder)
@@ -124,12 +124,12 @@ class FileSession:
             os.mkdir(self._waybillfolder)
         except FileExistsError:
             pass
-    
+
     def export(self, filename:str, content:str, waybill=True) -> None:
         destination = self._waybillfolder if waybill else self._stockfolder
         filename = filename + self._extension
         with open(destination / filename, "w") as f:
-            f.write(content)        
+            f.write(content)
 
 
 class RaktarKeszlet(Frame):
@@ -186,6 +186,7 @@ class RaktarKeszlet(Frame):
         self.becenev = StringVar()
         self.gyarto = StringVar()
         self.leiras = StringVar()
+        self.szin = StringVar()
         self.megjegyzes = StringVar()
         self.hely = StringVar()
         self.gyartasido = StringVar()
@@ -211,6 +212,7 @@ class RaktarKeszlet(Frame):
                   "Becenév",
                   "Gyártó",
                   "Leírás",
+                  "Szín",
                   "Megjegyzés",
                   "Hely/projektszám",
                   "Egység",
@@ -272,26 +274,33 @@ class RaktarKeszlet(Frame):
                       textvariable=self.gyarto)
         b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.gyarto.get()))
-        # típus
+        # leírás
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.leiras)
         b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.leiras.get()))
+        # szín
+        b = ttk.Entry(frm_hosszu_mezo,
+                      width=HOSSZU_MEZO,
+                      justify=LEFT,
+                      textvariable=self.szin)
+        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.bind("<Return>", lambda e: self.tetelSzures(self.szin.get()))
         # megjegyzés
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.megjegyzes)
-        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=5, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.megjegyzes.get()))
         # raktári hely vagy projektszám
         b = ttk.Entry(frm_hosszu_mezo,
                       width=KOZEP_MEZO,
                       justify=LEFT,
                       textvariable=self.hely)
-        b.grid(row=5, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=6, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.hely.get()))
 
         frm_rovid_mezo = Frame(self)
@@ -514,6 +523,7 @@ class RaktarKeszlet(Frame):
         self.becenev.set(sor["becenev"])
         self.gyarto.set(sor["gyarto"])
         self.leiras.set(sor["leiras"])
+        self.szin.set(sor["szin"])
         self.megjegyzes.set(sor["megjegyzes"])
         self.egyseg.set(sor["egyseg"])
         self.egysegar.set(ezresv(egysegar))
@@ -725,6 +735,7 @@ class RaktarKeszlet(Frame):
                 becenev = ?,
                 gyarto = ?,
                 leiras = ?,
+                szin = ?,
                 megjegyzes = ?,
                 egyseg = ?,
                 egysegar = ?,
@@ -738,6 +749,7 @@ class RaktarKeszlet(Frame):
                   self.becenev.get(),
                   self.gyarto.get(),
                   self.leiras.get(),
+                  self.szin.get(),
                   self.megjegyzes.get(),
                   self.egyseg.get(),
                   egysegar,
@@ -761,6 +773,7 @@ class RaktarKeszlet(Frame):
                                becenev,
                                gyarto,
                                leiras,
+                               szin,
                                megjegyzes,
                                egyseg,
                                egysegar,
@@ -770,12 +783,13 @@ class RaktarKeszlet(Frame):
                                gyartasido,
                                letrehozas,
                                utolso_modositas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (valtozas,
                   megnevezes,
                   self.becenev.get(),
                   self.gyarto.get(),
                   self.leiras.get(),
+                  self.szin.get(),
                   self.megjegyzes.get(),
                   self.egyseg.get(),
                   egysegar,
@@ -810,7 +824,14 @@ class RaktarKeszlet(Frame):
         szuro = szuro.lower()
         self.cikkszamok.clear()
         self.kurzor.execute("""
-        SELECT cikkszam, megnevezes, becenev, gyarto, leiras, megjegyzes, hely
+        SELECT cikkszam,
+                megnevezes,
+                becenev,
+                gyarto,
+                leiras,
+                szin,
+                megjegyzes,
+                hely
         FROM raktar
         ORDER BY megnevezes
         """)
@@ -819,8 +840,9 @@ class RaktarKeszlet(Frame):
                 szuro in sor["becenev"].lower() or \
                     szuro in sor["gyarto"].lower() or \
                         szuro in sor["leiras"].lower() or \
-                            szuro in sor["megjegyzes"].lower() or \
-                                szuro in sor["hely"].lower():
+                            szuro in sor["szin"] or \
+                                szuro in sor["megjegyzes"].lower() or \
+                                    szuro in sor["hely"].lower():
                 self.cikkszamok.append(sor["cikkszam"])
                 print(".", end="")
         print()
@@ -844,7 +866,7 @@ class RaktarKeszlet(Frame):
                   self.cikkszamok[valasztas[0]]))
         self.kapcsolat.commit()
         self.tetelKijelzese(self.cikkszamok[valasztas[0]])
-    
+
     def show_stock(self) -> str:
         result = ""
         result += Rep.cimsor("raktárkészlet")
@@ -863,7 +885,7 @@ class RaktarKeszlet(Frame):
 
     def raktarKijelzese(self):
         print(self.show_stock())
-    
+
     def raktarExport(self) -> None:
         filename = "raktar_" + strftime("%Y%m%d")
         self._filesession.export(filename, self.show_stock(), False)
