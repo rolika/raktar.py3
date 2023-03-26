@@ -148,6 +148,7 @@ class RaktarKeszlet(Frame):
         self._filesession = FileSession()
         # esc-re törli a kiválasztást
         self.bind_all("<Escape>", self.kilepesKivalasztasbol)
+        self.bind_all("<Control-s>", self.tetelMentese)
         # első indításkor üres az adatbázis
         if len(self.cikkszamok) > 0:
             # egyébként az első tételt írja ki
@@ -499,7 +500,7 @@ class RaktarKeszlet(Frame):
         self.kurzor.execute("""
         SELECT *
         FROM raktar
-        ORDER BY megnevezes
+        ORDER BY gyarto, megnevezes;
         """)
         for sor in self.kurzor.fetchall():
             self.cikkszamok.append(sor["cikkszam"])
@@ -542,13 +543,14 @@ class RaktarKeszlet(Frame):
         lista = ""
         for cikkszam in self.cikkszamok:
             self.kurzor.execute("""
-            SELECT megnevezes, keszlet, egyseg
+            SELECT megnevezes, gyarto, keszlet, egyseg
             FROM raktar
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
+            szokoz = " " if sor["gyarto"] else ""
             egy_sor = "{:<42}{:>8} {}"\
-                .format(sor["megnevezes"][0:40],
+                .format((sor["gyarto"] + szokoz + sor["megnevezes"])[0:40],
                         ezresv(format(sor["keszlet"], ".2f").replace(".", ",")),
                           sor["egyseg"])
             egy_sor = egy_sor.replace(" ", "_")
@@ -705,7 +707,7 @@ class RaktarKeszlet(Frame):
             messagebox.showerror(title="Hiba!",
                                  message="Előbb hozz létre új tételt!")
 
-    def tetelMentese(self):
+    def tetelMentese(self, e=None):
         try:
             valtozas = szamot(self.valtozas.get())
         except:
@@ -833,7 +835,7 @@ class RaktarKeszlet(Frame):
                 megjegyzes,
                 hely
         FROM raktar
-        ORDER BY megnevezes
+        ORDER BY gyarto, megnevezes
         """)
         for sor in self.kurzor.fetchall():
             if szuro in sor["megnevezes"].lower() or \
