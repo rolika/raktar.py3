@@ -92,15 +92,26 @@ class Rep:
             """.format(article))
             record = cursor.fetchone()
             if record["keszlet"]:
-                result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft"\
-                    .format(format(i + 1, "0=5"),
-                        record["megnevezes"][0:28],
-                        ezresv(format(record["keszlet"], ".0f")),
-                        record["egyseg"][:3],
-                        ezresv(record["egysegar"]),
-                        record["egyseg"][:3],
-                        ezresv(int(record["keszlet"] * record["egysegar"])))
-                result += "\n"
+                result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft\n"\
+                        .format(format(i + 1, "0=5"),
+                            record["megnevezes"][0:28],
+                            ezresv(format(record["keszlet"], ".0f")),
+                            record["egyseg"][:3],
+                            ezresv(record["egysegar"]),
+                            record["egyseg"][:3],
+                            ezresv(int(record["keszlet"] * record["egysegar"])))
+        return result
+    
+    def waybill2str(cursor:sqlite3.Cursor, articles:dict) -> str:
+        """Build a string of the presented articles to show the waybill."""
+        result = ""
+        for i, article in enumerate(articles):
+            result += "{:>6}   {:<50} {:>12} {}\n"\
+                        .format(format(i + 1, "0=5"),
+                                       article["megnevezes"][0:49],
+                                       ezresv(format(abs(article["valtozas"]),\
+                                                     ".2f")),
+                                       article["egyseg"])
         return result
 
 
@@ -918,6 +929,14 @@ r________Érték___\n")
         print("________________________________________________________________\
 _______________")
 
+    def show_waybill(self) -> str:
+        result = ""
+        result += Rep.cimsor("szállítólevél")
+        result += Rep.fejlec(sorszám=9,
+                             megnevezés=54,
+                             mennyiség=10,
+                             egység=7)
+    
     def szallitoLevelKijelzese(self):
         sorszam = 1
         print(Rep.cimsor("szállítólevél"))
@@ -946,13 +965,13 @@ _______________")
         filenev = szallitolevel_fileneve(self.hely.get())
         dirfilenev = EXPORTFOLDER + filenev + ".txt"
         f = open(dirfilenev, "w")
-        f.write(Rep.cimsor(szoveg="szállítólevél", sorveg="\n"))
+        f.write(Rep.cimsor(szoveg="szállítólevél"))
         f.write("{:>79}".format("száma: {}\n".format(filenev)))
         f.write("\nSzállító:                                Vevő:")
         for sor in zip(SZERVEZET, VEVO):
             f.write("\n{:<41}{}".format(sor[0], sor[1]))
         f.write("\n\n")
-        f.write(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7, sorveg="\n"))
+        f.write(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7))
         for sor in self.szallitolevel:
             self.kapcsolat.execute("""
             INSERT INTO raktar_naplo(
@@ -978,7 +997,7 @@ _______________")
                             sor["egyseg"]))
             sorszam += 1
         self.kapcsolat.commit()
-        f.write(Rep.vonal(sorveg="\n"))
+        f.write(Rep.vonal())
         f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
 
         f.write("\n\n\n\n")
@@ -990,7 +1009,6 @@ _______________")
         messagebox.showinfo(title=self.hely.get(),
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
-        file_megnyitasa(dirfilenev)
 
 
 def valid_projektszam(projektszam: str) -> re.match:
