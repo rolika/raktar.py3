@@ -102,7 +102,7 @@ class Rep:
                             ezresv(int(record["keszlet"] * record["egysegar"])))
         return result
     
-    def waybill2str(cursor:sqlite3.Cursor, articles:dict) -> str:
+    def waybill2str(articles:dict) -> str:
         """Build a string of the presented articles to show the waybill."""
         result = ""
         for i, article in enumerate(articles):
@@ -930,25 +930,14 @@ r________Érték___\n")
 _______________")
 
     def show_waybill(self) -> str:
-        result = ""
-        result += Rep.cimsor("szállítólevél")
-        result += Rep.fejlec(sorszám=9,
-                             megnevezés=54,
-                             mennyiség=10,
-                             egység=7)
+        result = Rep.cimsor("szállítólevél")
+        result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
+        result += Rep.waybill2str(self.szallitolevel)
+        result += Rep.vonal()
+        return result
     
     def szallitoLevelKijelzese(self):
-        sorszam = 1
-        print(Rep.cimsor("szállítólevél"))
-        print(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7))
-        for sor in self.szallitolevel:
-            print("{:>6}   {:<50} {:>12} {}"\
-                  .format(format(sorszam, "0=5"),
-                          sor["megnevezes"][0:49],
-                          ezresv(format(abs(sor["valtozas"]), ".2f")),
-                          sor["egyseg"]))
-            sorszam += 1
-        print(Rep.vonal())
+        print(self.show_waybill())
 
     def szallitoLevelExport(self):
         if not self.szallitolevel:
