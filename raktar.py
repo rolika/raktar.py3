@@ -525,9 +525,6 @@ class RaktarKeszlet(Frame):
         CREATE TABLE IF NOT EXISTS raktar_naplo(
             azonosito INTEGER PRIMARY KEY ASC,
             cikkszam INTEGER,
-            megnevezes,
-            egyseg,
-            egysegar,
             valtozas,
             datum,
             projektszam)
@@ -938,31 +935,6 @@ class RaktarKeszlet(Frame):
         self._filesession.export(filename, self.show_stock(), False)
         messagebox.showinfo(message="Raktárkészlet exportálva.")
 
-
-    def valtozasKijelzese(self):
-        """Ez egy nem használt funció egyelőre."""
-        sorszam = 1
-        print("{:_^79}".format("R A K T Á R N A P L Ó"))
-        print("\nSorszám__Megnevezés_______________________Készlet______Egységá\
-r________Érték___\n")
-        szuro = ""
-        for sor in self.kurzor.execute("""
-        SELECT *
-        FROM raktar_naplo {}
-        ORDER BY datum
-        """.format(szuro)):
-            print("{:>6}   {:<28} {:>8} {} {:>8} Ft/{} {:>11} Ft"\
-                  .format(format(sorszam, "0=5"),
-                          sor["megnevezes"][0:28],
-                          ezresv(format(sor["valtozas"], ".2f")),
-                          sor["egyseg"],
-                          ezresv(sor["egysegar"]),
-                          sor["egyseg"],
-                          ezresv(int(sor["valtozas"] * sor["egysegar"]))))
-            sorszam += 1
-        print("________________________________________________________________\
-_______________")
-
     def show_waybill(self) -> str:
         result = Rep.cimsor("szállítólevél")
         result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
@@ -1002,16 +974,14 @@ _______________")
             self.kapcsolat.execute("""
             INSERT INTO raktar_naplo(
                 cikkszam,
-                egyseg,
                 valtozas,
                 datum,
                 projektszam)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?)
             """, (sor["cikkszam"],
-                  sor["egyseg"],
                   sor["valtozas"],
                   datumbelyeg,
-                  projektszam))  # csak a +- változást menti
+                  projektszam))
             self.kapcsolat.execute("""
             UPDATE raktar
             SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
