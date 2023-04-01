@@ -143,6 +143,91 @@ class FileSession:
             f.write(content)
 
 
+class ItemRecord(dict):
+
+    columns = ("azonosító",
+               "gyártó",
+               "megnevezés",
+               "típus",
+               "cikkszám",
+               "leírás",
+               "becenév",
+               "szín",
+               "színkód",
+               "egység",
+               "kiszerelés",
+               "kiszerelés név",
+               "csomagolás",
+               "csomagolás név",
+               "kritikus mennyiség",
+               "szállítási idő",
+               "eltartható",
+               "gyakoriság",
+               "megjegyzés")
+    
+    def transform(func:callable) -> callable:
+        """Decorator function to strip all non alphanumeric characters from text
+        and replace all accented letters. This helps better ordering and naming
+        conventions.
+        Args:
+            func:   function to decorate
+        Returns:
+            the wrapper function
+        """
+        def stringwrapper(cls:ItemRecord) -> str:
+            """Transforms the text.
+            Args:
+                cls:    class instance
+            Returns:
+                transformed string"""
+            text = str(cls)
+            return "".join(re.findall("[a-z1-9]", text.lower().\
+                translate(str.maketrans("áéíóöőúüű", "aeiooouuu"))))
+        return stringwrapper
+
+    def __init__(self, **kwargs) -> None:
+        """Extract all known columnnames and its values.
+        Args:
+            kwargs: key-value pairs defining this record."""
+        for k in ItemRecord.columns:
+            self[k] = kwargs.get(k, "") if kwargs else ""
+
+    @classmethod
+    def from_db(cls, cursor:sqlite3.Cursor):
+        """Create a record from a database query.
+        Args:
+            cursor: cursor pointing to the row in database. The cursor should
+                    represent a row factory, to grant access as key-value pairs.
+        Returns:
+            an instance of this class."""
+        return cls(**cursor)
+
+    @classmethod
+    def from_gui(cls, **kwargs:dict[str:str]):
+        """Create a record from user data.
+        Args:
+            kwargs: a dictionary representing the entry fields and its values.
+        Returns:
+            an instance of this class."""
+        return cls(**kwargs)
+
+    def __str__(self) -> str:
+        """String representation of this record.
+        Returns:
+            string"""
+        return self["gyártó"] + " " + self["megnevezés"]
+    
+    @transform
+    def __repr__(self) -> str:
+        """String representation for ordering and naming."""
+        return self
+    
+    def increase_incidence(self) -> None:
+        """Increase this items incidence."""
+        self["gyakoriság"] += 1
+
+
+
 class RaktarKeszlet(Frame):
     def __init__(self, root = None):
         Frame.__init__(self, root)
