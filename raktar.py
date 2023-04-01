@@ -22,6 +22,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import simpledialog
 from time import strftime  # időbélyeghez
 import sqlite3
 import os
@@ -101,7 +102,7 @@ class Rep:
                             record["egyseg"][:3],
                             ezresv(int(record["keszlet"] * record["egysegar"])))
         return result
-    
+
     def waybill2str(articles:dict) -> str:
         """Build a string of the presented articles to show the waybill."""
         result = ""
@@ -143,9 +144,42 @@ class FileSession:
             f.write(content)
 
 
+class EntryDialog(simpledialog.Dialog):
+    """Tkinter dialog box to enter text into an entry field."""
+    def __init__(self, parent=None) -> None:
+        """Init wiht a parent widget.
+        parent: widget"""
+        self._entry_text = StringVar()
+        self.result = ""
+        super().__init__(parent, title="Hiány!")
+
+    def body(self, parent):
+        Label(parent, text="Kérek egy projektszámot").pack()
+        entry = Entry(parent, textvariable=self._entry_text, width=12)
+        entry.bind("<KeyPress-KP_Enter>", self.apply)
+        entry.bind("<KeyPress-Return>", self.apply)
+        entry.pack()
+        entry.focus_set()
+
+    def validate(self):
+        """Validate user entry for a valid project number which can be:
+        yy/n or yy/nn or yy/nnn."""
+        if valid_projektszam(self._entry_text.get()):
+            return True
+        else:
+            messagebox.showwarning(title="Hiba!",
+                                   message="Adj egy rendes projektszámot!")
+            return False
+
+    def apply(self, event:Event=None):
+        """Apply user entry."""
+        self.result = self._entry_text.get()
+
+
+
 class RaktarKeszlet(Frame):
     def __init__(self, root = None):
-        Frame.__init__(self, root)
+        super().__init__(root)
         if os.name == "posix":
             ikon = PhotoImage(file = LINUX_IKON)
             self.master.tk.call("wm", "iconphoto", self.master._w, ikon)
@@ -935,7 +969,7 @@ _______________")
         result += Rep.waybill2str(self.szallitolevel)
         result += Rep.vonal()
         return result
-    
+
     def szallitoLevelKijelzese(self):
         print(self.show_waybill())
 
@@ -945,13 +979,16 @@ _______________")
                                  message="Üres a szállítólevél!")
             return
         if not valid_projektszam(self.hely.get()):
-            messagebox.showwarning(title="Hiány!",
-                                   message="Kérlek, adj meg egy projektszámot!")
-            return
+            dialog = EntryDialog(self)
+            projektszam = dialog.result
+            if not projektszam:
+                return
+        else:
+            projektszam = self.hely.get()
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        filenev = szallitolevel_fileneve(self.hely.get())
+        filenev = szallitolevel_fileneve(projektszam)
         dirfilenev = EXPORTFOLDER + filenev + ".txt"
         f = open(dirfilenev, "w")
         f.write(Rep.cimsor(szoveg="szállítólevél"))
@@ -974,7 +1011,7 @@ _______________")
                   sor["egyseg"],
                   sor["valtozas"],
                   datumbelyeg,
-                  self.hely.get()))  # csak a +- változást menti
+                  projektszam))  # csak a +- változást menti
             self.kapcsolat.execute("""
             UPDATE raktar
             SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
@@ -995,7 +1032,7 @@ _______________")
         f.write("                 kiállította                   átvette\n")
         f.close()
         self.szallitolevel.clear()
-        messagebox.showinfo(title=self.hely.get(),
+        messagebox.showinfo(title=projektszam,
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
 
@@ -1007,7 +1044,7 @@ def valid_projektszam(projektszam: str) -> re.match:
     return projektszam_regex.fullmatch(projektszam)
 
 
-def filenev_projektszam(projektszam: str) -> str:
+def formazott_projektszam(projektszam: str) -> str:
     """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
     alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
     helyet. Ide már valid projektszám érkezik."""
@@ -1021,13 +1058,13 @@ def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
     projektszám érkezik."""
     kovetkezo_szam = 1  # a számozás 1-gyel kezdődik
     for nev in os.listdir(EXPORTFOLDER):
-        if nev.startswith(filenev_projektszam(projektszam)):
+        if nev.startswith(formazott_projektszam(projektszam)):
             kovetkezo_szam += 1
     return kovetkezo_szam
 
 
 def szallitolevel_fileneve(projektszam: str) -> str:
-    return "{}_{}".format(filenev_projektszam(projektszam),
+    return "{}_{}".format(formazott_projektszam(projektszam),
                           kovetkezo_szallitolevel_szama(projektszam))
 
 
