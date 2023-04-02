@@ -35,7 +35,7 @@ from typing import Iterable
 from szam_megjelenites import *
 
 
-__version__ = "0.41"
+__version__ = "0.5"
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -524,7 +524,9 @@ class RaktarKeszlet(Frame):
         self.kapcsolat.execute("""
         CREATE TABLE IF NOT EXISTS raktar_naplo(
             azonosito INTEGER PRIMARY KEY ASC,
-            cikkszam INTEGER,
+            megnevezes,
+            egysegar,
+            egyseg,
             valtozas,
             datum,
             projektszam)
@@ -678,7 +680,7 @@ class RaktarKeszlet(Frame):
                 except:
                     valtozas = 0
                 self.kurzor.execute("""
-                SELECT keszlet, megnevezes, egyseg
+                SELECT keszlet, megnevezes, egyseg, egysegar
                 FROM raktar
                 WHERE cikkszam = {}
                 """.format(self.cikkszam.get()))
@@ -733,6 +735,7 @@ class RaktarKeszlet(Frame):
                         szallito["valtozas"] = valtozas
                         szallito["keszlet"] = uj_keszlet
                         szallito["egyseg"] = sor["egyseg"]
+                        szallito["egysegar"] = sor["egysegar"]
                         self.szallitolevel.append(szallito)
                         print("{}: {} {} {}".format(mozgas,
                                                     abs(valtozas),
@@ -957,10 +960,11 @@ class RaktarKeszlet(Frame):
                 return
         else:
             projektszam = self.hely.get()
+        filenev = szallitolevel_fileneve(projektszam)
+        projektszam = formazott_projektszam(projektszam)
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        filenev = szallitolevel_fileneve(projektszam)
         dirfilenev = EXPORTFOLDER + filenev + ".txt"
         f = open(dirfilenev, "w")
         f.write(Rep.cimsor(szoveg="szállítólevél"))
@@ -973,12 +977,16 @@ class RaktarKeszlet(Frame):
         for sor in self.szallitolevel:
             self.kapcsolat.execute("""
             INSERT INTO raktar_naplo(
-                cikkszam,
+                megnevezes,
+                egysegar,
+                egyseg,
                 valtozas,
                 datum,
                 projektszam)
-            VALUES (?, ?, ?, ?)
-            """, (sor["cikkszam"],
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (sor["megnevezes"],
+                  sor["egysegar"],
+                  sor["egyseg"],
                   sor["valtozas"],
                   datumbelyeg,
                   projektszam))
