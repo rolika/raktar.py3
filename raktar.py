@@ -35,7 +35,7 @@ from typing import Iterable
 from szam_megjelenites import *
 
 
-__version__ = "0.5"
+__version__ = "0.51"
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -1052,6 +1052,12 @@ def file_megnyitasa(filenev:str) -> None:
     else:
         tarsitott = "notepad.exe"
     subprocess.run([tarsitott, " ", filenev])
+
+
+def projectnr_from_fmt(projectnr:str) -> str:
+    """Convert back the original project number."""
+    year, number = projectnr.split("_")
+    return "{}/{}".format(year, int(number))
 
 
 def foProgram():
