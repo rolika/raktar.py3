@@ -164,7 +164,7 @@ class EntryDialog(simpledialog.Dialog):
     def validate(self):
         """Validate user entry for a valid project number which can be:
         yy/n or yy/nn or yy/nnn."""
-        if valid_projektszam(self._entry_text.get()):
+        if self.valid_projektszam(self._entry_text.get()):
             return True
         else:
             messagebox.showwarning(title="Hiba!",
@@ -953,15 +953,15 @@ class RaktarKeszlet(Frame):
             messagebox.showerror(title="Hiba!",
                                  message="Üres a szállítólevél!")
             return
-        if not valid_projektszam(self.hely.get()):
+        if not self.valid_projektszam(self.hely.get()):
             dialog = EntryDialog(self)
             projektszam = dialog.result
             if not projektszam:
                 return
         else:
             projektszam = self.hely.get()
-        filenev = szallitolevel_fileneve(projektszam)
-        projektszam = formazott_projektszam(projektszam)
+        filenev = self.szallitolevel_fileneve(projektszam)
+        projektszam = self.formazott_projektszam(projektszam)
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
@@ -1015,35 +1015,36 @@ class RaktarKeszlet(Frame):
         self.tetelKijelzese(int(self.cikkszam.get()))
 
 
-def valid_projektszam(projektszam: str) -> re.match:
-    """A projektszám éé/s vagy éé/ss vagy éé/sss alakban elfogadható."""
-    pattern = r"(?P<ev>\d{2})\/(?P<szam>\d{1,3})"
-    projektszam_regex = re.compile(pattern)
-    return projektszam_regex.fullmatch(projektszam)
+    def valid_projektszam(self, projektszam: str) -> re.match:
+        """A projektszám éé/s vagy éé/ss vagy éé/sss alakban elfogadható."""
+        pattern = r"(?P<ev>\d{2})\/(?P<szam>\d{1,3})"
+        projektszam_regex = re.compile(pattern)
+        return projektszam_regex.fullmatch(projektszam)
 
 
-def formazott_projektszam(projektszam: str) -> str:
-    """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
-    alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
-    helyet. Ide már valid projektszám érkezik."""
-    mo = valid_projektszam(projektszam)
-    return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
+    def formazott_projektszam(self, projektszam: str) -> str:
+        """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
+        alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
+        helyet. Ide már valid projektszám érkezik."""
+        mo = self.valid_projektszam(projektszam)
+        return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
 
 
-def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
-    """A filenév így néz ki: 23_076_2, azaz ahány projektszámmal kezdődő file-t
-    (szállítólevelet) talál, eggyel több lesz a következő szám. Ide már valid
-    projektszám érkezik."""
-    kovetkezo_szam = 1  # a számozás 1-gyel kezdődik
-    for nev in os.listdir(EXPORTFOLDER):
-        if nev.startswith(formazott_projektszam(projektszam)):
-            kovetkezo_szam += 1
-    return kovetkezo_szam
+    def kovetkezo_szallitolevel_szama(self, projektszam: str) -> int:
+        """A szállítólevél száma néz ki: 23_076_2.
+        Kell egy query az adatbázisból, hány darab azonos projektszámmal kezdődő
+        szállítólevél van eddig."""
+        osszes = self.kapcsolat.execute(f"""
+        SELECT COUNT(DISTINCT projektszam)
+        FROM raktar_naplo
+        WHERE projektszam = "{projektszam}";
+        """)
+        return osszes.fetchone()[0] + 1
 
 
-def szallitolevel_fileneve(projektszam: str) -> str:
-    return "{}_{}".format(formazott_projektszam(projektszam),
-                          kovetkezo_szallitolevel_szama(projektszam))
+    def szallitolevel_fileneve(self, projektszam: str) -> str:
+        return "{}_{}".format(self.formazott_projektszam(projektszam),
+                              self.kovetkezo_szallitolevel_szama(projektszam))
 
 
 def file_megnyitasa(filenev:str) -> None:
