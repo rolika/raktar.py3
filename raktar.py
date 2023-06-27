@@ -1027,7 +1027,7 @@ def formazott_projektszam(projektszam: str) -> str:
     alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
     helyet. Ide már valid projektszám érkezik."""
     mo = valid_projektszam(projektszam)
-    return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
+    return "{}_{:0>3}".format(mo["ev"], mo["szam"])
 
 
 def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
