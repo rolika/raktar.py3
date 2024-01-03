@@ -595,7 +595,7 @@ class RaktarKeszlet(Frame):
             szokoz = " " if sor["gyarto"] else ""
             egy_sor = "{:<42}{:>8} {}"\
                 .format((sor["gyarto"] + szokoz + sor["megnevezes"])[0:40],
-                        ezresv(format(sor["keszlet"], ".2f").replace(".", ",")),
+                        ezresv(format(float(sor["keszlet"]), ".2f").replace(".", ",")),
                           sor["egyseg"])
             egy_sor = egy_sor.replace(" ", "_")
             lista += (egy_sor + " ")
