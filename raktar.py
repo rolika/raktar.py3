@@ -622,7 +622,7 @@ class RaktarKeszlet(Frame):
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
-            raktarertek += int(sor["keszlet"] * sor["egysegar"])
+            raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
     def raktarErtek(self):
@@ -632,7 +632,7 @@ class RaktarKeszlet(Frame):
         FROM raktar
         """)
         for sor in self.kurzor.fetchall():
-            raktarertek += int(sor["keszlet"] * sor["egysegar"])
+            raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
     def elozoTetel(self):
