@@ -96,11 +96,11 @@ class Rep:
                 result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft\n"\
                         .format(format(i + 1, "0=5"),
                             record["megnevezes"][0:28],
-                            ezresv(format(record["keszlet"], ".0f")),
+                            ezresv(format(float(record["keszlet"]), ".0f")),
                             record["egyseg"][:3],
                             ezresv(record["egysegar"]),
                             record["egyseg"][:3],
-                            ezresv(int(record["keszlet"] * record["egysegar"])))
+                            ezresv(int(float(record["keszlet"]) * float(record["egysegar"]))))
         return result
 
     def waybill2str(articles:dict) -> str:
@@ -556,11 +556,11 @@ class RaktarKeszlet(Frame):
         WHERE cikkszam = {}
         """.format(cikkszam))
         sor = self.kurzor.fetchone()
-        keszlet = sor["keszlet"]
+        keszlet = float(sor["keszlet"])
         egysegar = sor["egysegar"]
-        keszletertek = int(keszlet * egysegar)
+        keszletertek = int(float(keszlet) * egysegar)
         self.cikkszam.set(format(sor["cikkszam"], "0=5"))
-        self.keszlet.set(ezresv(format(keszlet, ".2f")))
+        self.keszlet.set(ezresv(format(float(keszlet), ".2f")))
         self.keszletertek.set(ezresv(keszletertek))
         self.kivalasztas_erteke.set(ezresv(self.kivalasztasErteke()))
         self.raktarertek.set(ezresv(self.raktarErtek()))
@@ -685,7 +685,7 @@ class RaktarKeszlet(Frame):
                 WHERE cikkszam = {}
                 """.format(self.cikkszam.get()))
                 sor = self.kurzor.fetchone()
-                keszlet = sor["keszlet"]
+                keszlet = float(sor["keszlet"])
                 uj_keszlet = valtozas
 
                 mozgas = False  # kivét vagy bevét
@@ -993,7 +993,7 @@ class RaktarKeszlet(Frame):
             self.kapcsolat.execute("""
             UPDATE raktar
             SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
-            """, (sor["keszlet"], datumbelyeg, sor["cikkszam"]))
+            """, (float(sor["keszlet"]), datumbelyeg, sor["cikkszam"]))
             f.write("{:>6}   {:<50} {:>12} {}\n"\
                     .format(format(sorszam, "0=5"),
                             sor["megnevezes"][0:49],
