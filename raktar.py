@@ -977,7 +977,7 @@ class RaktarKeszlet(Frame):
 
         f.write("\n\n\n\n")
         f.write("             ___________________          ___________________")
-        f.write("\n")
+        f.write("               Hartmann Zoltán\n")
         f.write("                 kiállította                   átvette\n")
         f.close()
         self.szallitolevel.clear()
