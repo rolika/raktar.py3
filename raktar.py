@@ -22,7 +22,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from tkinter import simpledialog
+from tkinter.simpledialog import askstring
 from time import strftime  # időbélyeghez
 import sqlite3
 import os
@@ -35,7 +35,7 @@ from typing import Iterable
 from szam_megjelenites import *
 
 
-__version__ = "0.51"
+__version__ = "0.52"
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -142,39 +142,6 @@ class FileSession:
         filename = filename + self._extension
         with open(destination / filename, "w") as f:
             f.write(content)
-
-
-class EntryDialog(simpledialog.Dialog):
-    """Tkinter dialog box to enter text into an entry field."""
-    def __init__(self, parent=None) -> None:
-        """Init wiht a parent widget.
-        parent: widget"""
-        self._entry_text = StringVar()
-        self.result = ""
-        super().__init__(parent, title="Hiány!")
-
-    def body(self, parent):
-        Label(parent, text="Kérek egy projektszámot").pack()
-        entry = Entry(parent, textvariable=self._entry_text, width=12)
-        entry.bind("<KeyPress-KP_Enter>", self.apply)
-        entry.bind("<KeyPress-Return>", self.apply)
-        entry.pack()
-        entry.focus_set()
-
-    def validate(self):
-        """Validate user entry for a valid project number which can be:
-        yy/n or yy/nn or yy/nnn."""
-        if valid_projektszam(self._entry_text.get()):
-            return True
-        else:
-            messagebox.showwarning(title="Hiba!",
-                                   message="Adj egy rendes projektszámot!")
-            return False
-
-    def apply(self, event:Event=None):
-        """Apply user entry."""
-        self.result = self._entry_text.get()
-
 
 
 class RaktarKeszlet(Frame):
@@ -953,13 +920,17 @@ class RaktarKeszlet(Frame):
             messagebox.showerror(title="Hiba!",
                                  message="Üres a szállítólevél!")
             return
-        if not valid_projektszam(self.hely.get()):
-            dialog = EntryDialog(self)
-            projektszam = dialog.result
+        while True:
+            projektszam = askstring("Költséghely",
+                                    "Kérek egy projektszámot:",
+                                    initialvalue=self.hely.get())
             if not projektszam:
                 return
-        else:
-            projektszam = self.hely.get()
+            if not valid_projektszam(projektszam):
+                messagebox.showerror(title="Hiba!",
+                                     message="Nem megfelelő projektszám!")
+                continue
+            break
         filenev = self.szallitolevel_fileneve(projektszam)
         projektszam = self.formazott_projektszam(projektszam)
         sorszam = 1
