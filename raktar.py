@@ -22,16 +22,20 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter.simpledialog import askstring
 from time import strftime  # időbélyeghez
 import sqlite3
 import os
 import re
+import subprocess
+import pathlib
+from typing import Iterable
 
 
 from szam_megjelenites import *
 
 
-__version__ = "0.33"
+__version__ = "0.52"
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -42,6 +46,7 @@ SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
 VEVO = ["", "", ""]
 JELOLOSZIN = ("green", "darkgreen")
 EXPORTFOLDER = "szallitolevelek/"
+EXPORTEXTENSION = "txt"
 
 
 #grid-jellemzők
@@ -53,9 +58,95 @@ PADX = 2
 PADY = 2
 
 
+class Rep:
+    """A reprezentációs osztály a terminálon kijelzésekhez és a fileexportokhoz
+    biztosít vonalat, címsort, fejlécet."""
+
+    def vonal(karakter:str="_", hossz:int=80) -> str:
+        """Megadott hosszúságú vonal rajzolása."""
+        return "".join(karakter for _ in range(hossz)) + "\n"
+
+    def cimsor(szoveg:str) -> str:
+        """A címsor csupa nagybetű, a betű között szóközzel, középre igazított,
+        alul-felül átmenő vonallal."""
+        cim = " ".join(betu.upper() for betu in szoveg)
+        return "{}{:^80}{}{}".format(Rep.vonal(), cim, "\n", Rep.vonal())
+
+    def fejlec(karakter:str="", **kwargs:dict[str,int]) -> str:
+        """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
+        melyek egymástól meghatározott távolságra vannak és karakter köti össze
+        őket, aláhúzva egy folytonos vonallal."""
+        formatspec = ("{:" + karakter + "<" + str(kwargs[szo]) + "}" \
+                      for szo in kwargs)
+        fejlec = "".join(formatspec)\
+            .format(*(szo.capitalize() for szo in kwargs.keys()))
+        return fejlec + "\n" + Rep.vonal()
+
+    def stock2str(cursor:sqlite3.Cursor, articles:Iterable[int]) -> str:
+        """Build a string of the presented articles to show the stock."""
+        result = ""
+        for i, article in enumerate(articles):
+            cursor.execute("""
+            SELECT megnevezes, keszlet, egyseg, egysegar
+            FROM raktar
+            WHERE cikkszam = {};
+            """.format(article))
+            record = cursor.fetchone()
+            if record["keszlet"]:
+                result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft\n"\
+                        .format(format(i + 1, "0=5"),
+                            record["megnevezes"][0:28],
+                            ezresv(format(float(record["keszlet"]), ".0f")),
+                            record["egyseg"][:3],
+                            ezresv(record["egysegar"]),
+                            record["egyseg"][:3],
+                            ezresv(int(float(record["keszlet"]) * float(record["egysegar"]))))
+        return result
+
+    def waybill2str(articles:dict) -> str:
+        """Build a string of the presented articles to show the waybill."""
+        result = ""
+        for i, article in enumerate(articles):
+            result += "{:>6}   {:<50} {:>12} {}\n"\
+                        .format(format(i + 1, "0=5"),
+                                       article["megnevezes"][0:49],
+                                       ezresv(format(abs(article["valtozas"]),\
+                                                     ".2f")),
+                                       article["egyseg"])
+        return result
+
+
+class FileSession:
+    """Class to handle file operations."""
+    def __init__(self,
+                 stockfolder:str=EXPORTFOLDER,
+                 waybillfolder:str=EXPORTFOLDER,
+                 extension:str=EXPORTEXTENSION) -> None:
+        self._stockfolder = pathlib.Path(stockfolder)
+        self._waybillfolder = pathlib.Path(waybillfolder)
+        self._extension = "." + extension
+        self._create_folders()
+
+    def _create_folders(self) -> None:
+        try:
+            os.mkdir(self._stockfolder)
+        except FileExistsError:
+            pass
+        try:
+            os.mkdir(self._waybillfolder)
+        except FileExistsError:
+            pass
+
+    def export(self, filename:str, content:str, waybill=True) -> None:
+        destination = self._waybillfolder if waybill else self._stockfolder
+        filename = filename + self._extension
+        with open(destination / filename, "w") as f:
+            f.write(content)
+
+
 class RaktarKeszlet(Frame):
     def __init__(self, root = None):
-        Frame.__init__(self, root)
+        super().__init__(root)
         if os.name == "posix":
             ikon = PhotoImage(file = LINUX_IKON)
             self.master.tk.call("wm", "iconphoto", self.master._w, ikon)
@@ -66,8 +157,10 @@ class RaktarKeszlet(Frame):
         self.vezerloValtozok()
         self.widgetekElhelyezese()
         self.adatbazisInicializalasa()
+        self._filesession = FileSession()
         # esc-re törli a kiválasztást
         self.bind_all("<Escape>", self.kilepesKivalasztasbol)
+        self.bind_all("<Control-s>", self.tetelMentese)
         # első indításkor üres az adatbázis
         if len(self.cikkszamok) > 0:
             # egyébként az első tételt írja ki
@@ -103,8 +196,10 @@ class RaktarKeszlet(Frame):
                       self.raktarertek)
         # felhasználó által megadott értékek
         self.megnevezes = StringVar()
+        self.becenev = StringVar()
         self.gyarto = StringVar()
         self.leiras = StringVar()
+        self.szin = StringVar()
         self.megjegyzes = StringVar()
         self.hely = StringVar()
         self.gyartasido = StringVar()
@@ -127,8 +222,10 @@ class RaktarKeszlet(Frame):
                   "Kiválasztás értéke",
                   "Raktár értéke",
                   "Megnevezés",
+                  "Becenév",
                   "Gyártó",
                   "Leírás",
+                  "Szín",
                   "Megjegyzés",
                   "Hely/projektszám",
                   "Egység",
@@ -176,33 +273,47 @@ class RaktarKeszlet(Frame):
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         self.megnevezes_bevitel.bind("<Return>",\
                             lambda e: self.tetelSzures(self.megnevezes.get()))
+        # becenév
+        b = ttk.Entry(frm_hosszu_mezo,
+                      width=HOSSZU_MEZO,
+                      justify=LEFT,
+                      textvariable=self.becenev)
+        b.grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.bind("<Return>", lambda e: self.tetelSzures(self.becenev.get()))
         # gyártó
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.gyarto)
-        b.grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.gyarto.get()))
-        # típus
+        # leírás
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.leiras)
-        b.grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.leiras.get()))
+        # szín
+        b = ttk.Entry(frm_hosszu_mezo,
+                      width=HOSSZU_MEZO,
+                      justify=LEFT,
+                      textvariable=self.szin)
+        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.bind("<Return>", lambda e: self.tetelSzures(self.szin.get()))
         # megjegyzés
         b = ttk.Entry(frm_hosszu_mezo,
                       width=HOSSZU_MEZO,
                       justify=LEFT,
                       textvariable=self.megjegyzes)
-        b.grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=5, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.megjegyzes.get()))
         # raktári hely vagy projektszám
         b = ttk.Entry(frm_hosszu_mezo,
                       width=KOZEP_MEZO,
                       justify=LEFT,
                       textvariable=self.hely)
-        b.grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
+        b.grid(row=6, column=0, sticky=W, padx=PADX, pady=PADY)
         b.bind("<Return>", lambda e: self.tetelSzures(self.hely.get()))
 
         frm_rovid_mezo = Frame(self)
@@ -363,6 +474,7 @@ class RaktarKeszlet(Frame):
             cikkszam INTEGER PRIMARY KEY ASC,
             keszlet,
             megnevezes,
+            becenev,
             gyarto,
             leiras,
             megjegyzes,
@@ -379,10 +491,9 @@ class RaktarKeszlet(Frame):
         self.kapcsolat.execute("""
         CREATE TABLE IF NOT EXISTS raktar_naplo(
             azonosito INTEGER PRIMARY KEY ASC,
-            cikkszam INTEGER,
             megnevezes,
-            egyseg,
             egysegar,
+            egyseg,
             valtozas,
             datum,
             projektszam)
@@ -400,7 +511,7 @@ class RaktarKeszlet(Frame):
         self.kurzor.execute("""
         SELECT *
         FROM raktar
-        ORDER BY megnevezes
+        ORDER BY gyarto, megnevezes;
         """)
         for sor in self.kurzor.fetchall():
             self.cikkszamok.append(sor["cikkszam"])
@@ -412,17 +523,19 @@ class RaktarKeszlet(Frame):
         WHERE cikkszam = {}
         """.format(cikkszam))
         sor = self.kurzor.fetchone()
-        keszlet = sor["keszlet"]
+        keszlet = float(sor["keszlet"])
         egysegar = sor["egysegar"]
-        keszletertek = int(keszlet * egysegar)
+        keszletertek = int(float(keszlet) * egysegar)
         self.cikkszam.set(format(sor["cikkszam"], "0=5"))
-        self.keszlet.set(ezresv(format(keszlet, ".2f")))
+        self.keszlet.set(ezresv(format(float(keszlet), ".2f")))
         self.keszletertek.set(ezresv(keszletertek))
         self.kivalasztas_erteke.set(ezresv(self.kivalasztasErteke()))
         self.raktarertek.set(ezresv(self.raktarErtek()))
         self.megnevezes.set(sor["megnevezes"])
+        self.becenev.set(sor["becenev"])
         self.gyarto.set(sor["gyarto"])
         self.leiras.set(sor["leiras"])
+        self.szin.set(sor["szin"])
         self.megjegyzes.set(sor["megjegyzes"])
         self.egyseg.set(sor["egyseg"])
         self.egysegar.set(ezresv(egysegar))
@@ -441,27 +554,28 @@ class RaktarKeszlet(Frame):
         lista = ""
         for cikkszam in self.cikkszamok:
             self.kurzor.execute("""
-            SELECT megnevezes, keszlet, egyseg
+            SELECT megnevezes, gyarto, keszlet, egyseg
             FROM raktar
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
+            szokoz = " " if sor["gyarto"] else ""
             egy_sor = "{:<42}{:>8} {}"\
-                .format(sor["megnevezes"][0:40],
-                        ezresv(format(sor["keszlet"], ".2f").replace(".", ",")),
+                .format((sor["gyarto"] + szokoz + sor["megnevezes"])[0:40],
+                        ezresv(format(float(sor["keszlet"]), ".2f").replace(".", ",")),
                           sor["egyseg"])
             egy_sor = egy_sor.replace(" ", "_")
             lista += (egy_sor + " ")
         self.lista.set(lista)
         for i, cikkszam in enumerate(self.cikkszamok):
             self.kurzor.execute("""
-            SELECT szin
+            SELECT jeloles
             FROM raktar
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
-            if sor["szin"]:
-                alap, valasztott = sor["szin"].split(" ")
+            if sor["jeloles"]:
+                alap, valasztott = sor["jeloles"].split(" ")
                 self.listbox.itemconfig(i, bg=alap, selectbackground=valasztott)
             else:
                 self.listbox.itemconfig(i, bg="", selectbackground="")
@@ -475,7 +589,7 @@ class RaktarKeszlet(Frame):
             WHERE cikkszam = {}
             """.format(cikkszam))
             sor = self.kurzor.fetchone()
-            raktarertek += int(sor["keszlet"] * sor["egysegar"])
+            raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
     def raktarErtek(self):
@@ -485,7 +599,7 @@ class RaktarKeszlet(Frame):
         FROM raktar
         """)
         for sor in self.kurzor.fetchall():
-            raktarertek += int(sor["keszlet"] * sor["egysegar"])
+            raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
     def elozoTetel(self):
@@ -533,12 +647,12 @@ class RaktarKeszlet(Frame):
                 except:
                     valtozas = 0
                 self.kurzor.execute("""
-                SELECT keszlet, megnevezes, egyseg
+                SELECT keszlet, megnevezes, egyseg, egysegar
                 FROM raktar
                 WHERE cikkszam = {}
                 """.format(self.cikkszam.get()))
                 sor = self.kurzor.fetchone()
-                keszlet = sor["keszlet"]
+                keszlet = float(sor["keszlet"])
                 uj_keszlet = valtozas
 
                 mozgas = False  # kivét vagy bevét
@@ -588,6 +702,7 @@ class RaktarKeszlet(Frame):
                         szallito["valtozas"] = valtozas
                         szallito["keszlet"] = uj_keszlet
                         szallito["egyseg"] = sor["egyseg"]
+                        szallito["egysegar"] = sor["egysegar"]
                         self.szallitolevel.append(szallito)
                         print("{}: {} {} {}".format(mozgas,
                                                     abs(valtozas),
@@ -604,7 +719,7 @@ class RaktarKeszlet(Frame):
             messagebox.showerror(title="Hiba!",
                                  message="Előbb hozz létre új tételt!")
 
-    def tetelMentese(self):
+    def tetelMentese(self, e=None):
         try:
             valtozas = szamot(self.valtozas.get())
         except:
@@ -631,8 +746,10 @@ class RaktarKeszlet(Frame):
             self.kapcsolat.execute("""
             UPDATE raktar
             SET megnevezes = ?,
+                becenev = ?,
                 gyarto = ?,
                 leiras = ?,
+                szin = ?,
                 megjegyzes = ?,
                 egyseg = ?,
                 egysegar = ?,
@@ -643,8 +760,10 @@ class RaktarKeszlet(Frame):
                 utolso_modositas = ?
             WHERE cikkszam = ?
             """, (megnevezes,
+                  self.becenev.get(),
                   self.gyarto.get(),
                   self.leiras.get(),
+                  self.szin.get(),
                   self.megjegyzes.get(),
                   self.egyseg.get(),
                   egysegar,
@@ -665,8 +784,10 @@ class RaktarKeszlet(Frame):
             self.kapcsolat.execute("""
             INSERT INTO raktar(keszlet,
                                megnevezes,
+                               becenev,
                                gyarto,
                                leiras,
+                               szin,
                                megjegyzes,
                                egyseg,
                                egysegar,
@@ -676,11 +797,13 @@ class RaktarKeszlet(Frame):
                                gyartasido,
                                letrehozas,
                                utolso_modositas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (valtozas,
                   megnevezes,
+                  self.becenev.get(),
                   self.gyarto.get(),
                   self.leiras.get(),
+                  self.szin.get(),
                   self.megjegyzes.get(),
                   self.egyseg.get(),
                   egysegar,
@@ -715,16 +838,25 @@ class RaktarKeszlet(Frame):
         szuro = szuro.lower()
         self.cikkszamok.clear()
         self.kurzor.execute("""
-        SELECT cikkszam, megnevezes, gyarto, leiras, megjegyzes, hely
+        SELECT cikkszam,
+                megnevezes,
+                becenev,
+                gyarto,
+                leiras,
+                szin,
+                megjegyzes,
+                hely
         FROM raktar
-        ORDER BY megnevezes
+        ORDER BY gyarto, megnevezes
         """)
         for sor in self.kurzor.fetchall():
             if szuro in sor["megnevezes"].lower() or \
-                szuro in sor["gyarto"].lower() or \
-                    szuro in sor["leiras"].lower() or \
-                        szuro in sor["megjegyzes"].lower() or \
-                            szuro in sor["hely"].lower():
+                szuro in sor["becenev"].lower() or \
+                    szuro in sor["gyarto"].lower() or \
+                        szuro in sor["leiras"].lower() or \
+                            szuro in sor["szin"] or \
+                                szuro in sor["megjegyzes"].lower() or \
+                                    szuro in sor["hely"].lower():
                 self.cikkszamok.append(sor["cikkszam"])
                 print(".", end="")
         print()
@@ -738,124 +870,101 @@ class RaktarKeszlet(Frame):
         if hatterszin in JELOLOSZIN:
             self.kurzor.execute("""
             UPDATE raktar
-            SET szin = ?
+            SET jeloles = ?
             WHERE cikkszam = ?
             """, ("", self.cikkszamok[valasztas[0]]))
         else:
             self.kurzor.execute("""
-            UPDATE raktar SET szin = ? WHERE cikkszam = ?
+            UPDATE raktar SET jeloles = ? WHERE cikkszam = ?
             """, (JELOLOSZIN[0] + " " + JELOLOSZIN[1],
                   self.cikkszamok[valasztas[0]]))
         self.kapcsolat.commit()
         self.tetelKijelzese(self.cikkszamok[valasztas[0]])
 
-    def raktarKijelzese(self):
-        sorszam = 1
-        print("{:_^79}".format("R A K T Á R"))
-        print("\nSorszám_Megnevezés_______________________Készlet_______Egységá\
-r________Érték___\n")
-        for cikkszam in self.cikkszamok:
-            self.kurzor.execute("""
-            SELECT megnevezes, keszlet, egyseg, egysegar
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
-            if sor["keszlet"]:
-                print("{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{} {:>11} Ft"\
-                      .format(format(sorszam, "0=5"),
-                              sor["megnevezes"][0:28],
-                              ezresv(format(sor["keszlet"], ".2f")),
-                              sor["egyseg"][:3],
-                              ezresv(sor["egysegar"]),
-                              sor["egyseg"][:3],
-                              ezresv(int(sor["keszlet"] * sor["egysegar"]))))
-                sorszam += 1
-        print("________________________________________________________________\
-_______________")
-        print("Kiválasztás értéke összesen:                                    \
-{:>12} Ft"\
-              .format(ezresv(self.kivalasztasErteke())))
+    def show_stock(self) -> str:
+        result = ""
+        result += Rep.cimsor("raktárkészlet")
+        result += Rep.fejlec(sorszám=8,
+                             megnevezés=33,
+                             készlet=14,
+                             egységár=16,
+                             érték=9)
+        result += Rep.stock2str(self.kurzor, self.cikkszamok)
+        result += Rep.vonal()
+        result += "Kiválasztás értéke összesen:                            \
+         {:>12} Ft\n".format(ezresv(self.kivalasztasErteke()))
+        result += Rep.vonal()
+        result += "{}-i állapot.\n".format(strftime("%Y.%m.%d"))
+        return result
 
-    def valtozasKijelzese(self):
-        """Ez egy nem használt funció egyelőre."""
-        sorszam = 1
-        print("{:_^79}".format("R A K T Á R N A P L Ó"))
-        print("\nSorszám__Megnevezés_______________________Készlet______Egységá\
-r________Érték___\n")
-        szuro = ""
-        for sor in self.kurzor.execute("""
-        SELECT *
-        FROM raktar_naplo {}
-        ORDER BY datum
-        """.format(szuro)):
-            print("{:>6}   {:<28} {:>8} {} {:>8} Ft/{} {:>11} Ft"\
-                  .format(format(sorszam, "0=5"),
-                          sor["megnevezes"][0:28],
-                          ezresv(format(sor["valtozas"], ".2f")),
-                          sor["egyseg"],
-                          ezresv(sor["egysegar"]),
-                          sor["egyseg"],
-                          ezresv(int(sor["valtozas"] * sor["egysegar"]))))
-            sorszam += 1
-        print("________________________________________________________________\
-_______________")
+    def raktarKijelzese(self):
+        print(self.show_stock())
+
+    def raktarExport(self) -> None:
+        filename = "raktar_" + strftime("%Y%m%d")
+        self._filesession.export(filename, self.show_stock(), False)
+        messagebox.showinfo(message="Raktárkészlet exportálva.")
+
+    def show_waybill(self) -> str:
+        result = Rep.cimsor("szállítólevél")
+        result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
+        result += Rep.waybill2str(self.szallitolevel)
+        result += Rep.vonal()
+        return result
 
     def szallitoLevelKijelzese(self):
-        sorszam = 1
-        print("{:_^79}".format("S Z Á L L Í T Ó L E V É L"))
-        print("\nSorszám__Megnevezés___________________________________________\
-_Mennyiség_Egység\n")
-        for sor in self.szallitolevel:
-            print("{:>6}   {:<50} {:>12} {}"\
-                  .format(format(sorszam, "0=5"),
-                          sor["megnevezes"][0:49],
-                          ezresv(format(abs(sor["valtozas"]), ".2f")),
-                          sor["egyseg"]))
-            sorszam += 1
-        print("________________________________________________________________\
-_______________")
+        print(self.show_waybill())
 
     def szallitoLevelExport(self):
         if not self.szallitolevel:
             messagebox.showerror(title="Hiba!",
                                  message="Üres a szállítólevél!")
             return
-        if not valid_projektszam(self.hely.get()):
-            messagebox.showwarning(title="Hiány!",
-                                   message="Kérlek, adj meg egy projektszámot!")
-            return
+        while True:
+            projektszam = askstring("Költséghely",
+                                    "Kérek egy projektszámot:",
+                                    initialvalue=self.hely.get())
+            if not projektszam:
+                return
+            if not valid_projektszam(projektszam):
+                messagebox.showerror(title="Hiba!",
+                                     message="Nem megfelelő projektszám!")
+                continue
+            break
+        filenev = self.szallitolevel_fileneve(projektszam)
+        projektszam = self.formazott_projektszam(projektszam)
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        filenev = szallitolevel_fileneve(self.hely.get())
-        f = open(EXPORTFOLDER + filenev + ".txt", "w")
-        f.write("\n{:_^79}\n".format("S Z Á L L Í T Ó L E V É L"))
+        dirfilenev = EXPORTFOLDER + filenev + ".txt"
+        f = open(dirfilenev, "w")
+        f.write(Rep.cimsor(szoveg="szállítólevél"))
         f.write("{:>79}".format("száma: {}\n".format(filenev)))
-        f.write("\nSzállító:________________________________Vevő:______________\
-___________________")
+        f.write("\nSzállító:                                Vevő:")
         for sor in zip(SZERVEZET, VEVO):
             f.write("\n{:<41}{}".format(sor[0], sor[1]))
-        f.write("\n\nSorszám__Megnevezés_______________________________________\
-_____Mennyiség_Egység\n\n")
+        f.write("\n\n")
+        f.write(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7))
         for sor in self.szallitolevel:
             self.kapcsolat.execute("""
             INSERT INTO raktar_naplo(
-                cikkszam,
+                megnevezes,
+                egysegar,
                 egyseg,
                 valtozas,
                 datum,
                 projektszam)
-            VALUES (?, ?, ?, ?, ?)
-            """, (sor["cikkszam"],
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (sor["megnevezes"],
+                  sor["egysegar"],
                   sor["egyseg"],
                   sor["valtozas"],
                   datumbelyeg,
-                  self.hely.get()))  # csak a +- változást menti
+                  projektszam))
             self.kapcsolat.execute("""
             UPDATE raktar
             SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
-            """, (sor["keszlet"], datumbelyeg, sor["cikkszam"]))
+            """, (float(sor["keszlet"]), datumbelyeg, sor["cikkszam"]))
             f.write("{:>6}   {:<50} {:>12} {}\n"\
                     .format(format(sorszam, "0=5"),
                             sor["megnevezes"][0:49],
@@ -863,87 +972,64 @@ _____Mennyiség_Egység\n\n")
                             sor["egyseg"]))
             sorszam += 1
         self.kapcsolat.commit()
-        f.write("______________________________________________________________\
-_________________\n")
+        f.write(Rep.vonal())
         f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
 
         f.write("\n\n\n\n")
-        f.write("\n{:^79}\n".format("_____________________          ___________\
-__________"))
-        f.write("{:^79}\n".format("kiállította                     átvette"))
+        f.write("             ___________________          ___________________")
+        f.write("               Hartmann Zoltán\n")
+        f.write("                 kiállította                   átvette\n")
         f.close()
         self.szallitolevel.clear()
-        messagebox.showinfo(title=self.hely.get(),
+        messagebox.showinfo(title=projektszam,
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
 
-    def raktarExport(self):
-        sorszam = 1
-        datumbelyeg_file = strftime("%Y%m%d%H%M%S")
-        datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        f = open("{}raktar{}.txt".format(EXPORTFOLDER, datumbelyeg_file),"w")
-        f.write("\n".join(sor for sor in SZERVEZET))
-        f.write("\n{:_^79}\n".format("R A K T Á R K É S Z L E T"))
-        f.write("\nSorszám_Megnevezés_______________________Készlet_______Egysé\
-gár________Érték___\n\n")
-        for cikkszam in self.cikkszamok:
-            self.kurzor.execute("""
-            SELECT megnevezes, keszlet, egyseg, egysegar
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
-            if sor["keszlet"]:
-                f.write("{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{} {:>11} Ft\n"\
-                        .format(format(sorszam, "0=5"),
-                                sor["megnevezes"][0:28],
-                                ezresv(format(sor["keszlet"], ".2f")),
-                                sor["egyseg"][:3],
-                                ezresv(sor["egysegar"]),
-                                sor["egyseg"][:3],
-                                ezresv(int(sor["keszlet"] * sor["egysegar"]))))
-                sorszam += 1
-        f.write("______________________________________________________________\
-_________________\n")
-        f.write("\nKiválasztás értéke összesen:                                \
-                    {:>12} Ft\n".format(ezresv(self.kivalasztasErteke())))
-        f.write("Raktár értéke összesen:                                       \
-                  {:>12} Ft\n".format(ezresv(self.raktarErtek())))
-        f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
-        f.close()
-        messagebox.showinfo(title=datumbelyeg_kijelzo,
-                            message="Raktárkészlet exportálva.")
+
+    def formazott_projektszam(self, projektszam: str) -> str:
+        """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
+        alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
+        helyet. Ide már valid projektszám érkezik."""
+        mo = valid_projektszam(projektszam)
+        return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
 
 
-def valid_projektszam(projektszam: str) -> re.match:
+    def kovetkezo_szallitolevel_szama(self, projektszam: str) -> int:
+        """A szállítólevél száma néz ki: 23_076_2.
+        Kell egy query az adatbázisból, hány darab azonos projektszámmal kezdődő
+        szállítólevél van eddig."""
+        osszes = self.kapcsolat.execute(f"""
+        SELECT COUNT(DISTINCT projektszam)
+        FROM raktar_naplo
+        WHERE projektszam = "{self.formazott_projektszam(projektszam)}";
+        """)
+        return osszes.fetchone()[0] + 1
+
+
+    def szallitolevel_fileneve(self, projektszam: str) -> str:
+        return "{}_{}".format(self.formazott_projektszam(projektszam),
+                              self.kovetkezo_szallitolevel_szama(projektszam))
+
+
+def file_megnyitasa(filenev:str) -> None:
+    if os.name == "posix":
+        tarsitott = "gedit"
+    else:
+        tarsitott = "notepad.exe"
+    subprocess.run([tarsitott, " ", filenev])
+
+
+def projectnr_from_fmt(projectnr:str) -> str:
+    """Convert back the original project number."""
+    year, number = projectnr.split("_")
+    return "{}/{}".format(year, int(number))
+
+
+def valid_projektszam(projektszam:str) -> re.match:
     """A projektszám éé/s vagy éé/ss vagy éé/sss alakban elfogadható."""
     pattern = r"(?P<ev>\d{2})\/(?P<szam>\d{1,3})"
     projektszam_regex = re.compile(pattern)
     return projektszam_regex.fullmatch(projektszam)
-
-
-def filenev_projektszam(projektszam: str) -> str:
-    """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
-    alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
-    helyet. Ide már valid projektszám érkezik."""
-    mo = valid_projektszam(projektszam)
-    return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
-
-
-def kovetkezo_szallitolevel_szama(projektszam: str) -> int:
-    """A filenév így néz ki: 23_076_2, azaz ahány projektszámmal kezdődő file-t
-    (szállítólevelet) talál, eggyel több lesz a következő szám. Ide már valid
-    projektszám érkezik."""
-    kovetkezo_szam = 1  # a számozás 1-gyel kezdődik
-    for nev in os.listdir(EXPORTFOLDER):
-        if nev.startswith(filenev_projektszam(projektszam)):
-            kovetkezo_szam += 1
-    return kovetkezo_szam
-
-
-def szallitolevel_fileneve(projektszam: str) -> str:
-    return "{}_{}".format(filenev_projektszam(projektszam),
-                          kovetkezo_szallitolevel_szama(projektszam))
 
 
 def foProgram():
@@ -953,3 +1039,5 @@ def foProgram():
 
 if __name__ == "__main__":
     foProgram()
+
+
