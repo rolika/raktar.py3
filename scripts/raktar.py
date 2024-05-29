@@ -39,13 +39,13 @@ __version__ = "0.52"
 
 
 PROGRAM = "Készlet-nyilvántartó"
-WINDOWS_IKON = "pohlen.ico"
-LINUX_IKON = "pohlen.gif"
-ADATBAZIS = "adatok.db"
+WINDOWS_IKON = "data/pohlen.ico"
+LINUX_IKON = "data/pohlen.gif"
+ADATBAZIS = "data/adatok.db"
 SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
 VEVO = ["", "", ""]
 JELOLOSZIN = ("green", "darkgreen")
-EXPORTFOLDER = "szallitolevelek/"
+EXPORTFOLDER = "data/szallitolevelek/"
 EXPORTEXTENSION = "txt"
 
 
