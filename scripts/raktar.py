@@ -27,11 +27,10 @@ from time import strftime  # időbélyeghez
 import sqlite3
 import os
 import re
-import subprocess
-import pathlib
-from typing import Iterable
 
-
+from filesession import FileSession, EXPORTFOLDER
+from misc import projectnr_from, valid_projectnr, fmt_projectnr
+from rep import Rep
 from szam_megjelenites import *
 
 
@@ -45,10 +44,6 @@ ADATBAZIS = "data/adatok.db"
 SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
 VEVO = ["", "", ""]
 JELOLOSZIN = ("green", "darkgreen")
-EXPORTFOLDER = "data/szallitolevelek/"
-EXPORTEXTENSION = "txt"
-
-
 #grid-jellemzők
 HOSSZU_MEZO = 42
 KOZEP_MEZO = 12
@@ -56,92 +51,6 @@ ROVID_MEZO = 8
 GOMB_SZELES = 8
 PADX = 2
 PADY = 2
-
-
-class Rep:
-    """A reprezentációs osztály a terminálon kijelzésekhez és a fileexportokhoz
-    biztosít vonalat, címsort, fejlécet."""
-
-    def vonal(karakter:str="_", hossz:int=80) -> str:
-        """Megadott hosszúságú vonal rajzolása."""
-        return "".join(karakter for _ in range(hossz)) + "\n"
-
-    def cimsor(szoveg:str) -> str:
-        """A címsor csupa nagybetű, a betű között szóközzel, középre igazított,
-        alul-felül átmenő vonallal."""
-        cim = " ".join(betu.upper() for betu in szoveg)
-        return "{}{:^80}{}{}".format(Rep.vonal(), cim, "\n", Rep.vonal())
-
-    def fejlec(karakter:str="", **kwargs:dict[str,int]) -> str:
-        """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
-        melyek egymástól meghatározott távolságra vannak és karakter köti össze
-        őket, aláhúzva egy folytonos vonallal."""
-        formatspec = ("{:" + karakter + "<" + str(kwargs[szo]) + "}" \
-                      for szo in kwargs)
-        fejlec = "".join(formatspec)\
-            .format(*(szo.capitalize() for szo in kwargs.keys()))
-        return fejlec + "\n" + Rep.vonal()
-
-    def stock2str(cursor:sqlite3.Cursor, articles:Iterable[int]) -> str:
-        """Build a string of the presented articles to show the stock."""
-        result = ""
-        for i, article in enumerate(articles):
-            cursor.execute("""
-            SELECT megnevezes, keszlet, egyseg, egysegar
-            FROM raktar
-            WHERE cikkszam = {};
-            """.format(article))
-            record = cursor.fetchone()
-            if record["keszlet"]:
-                result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft\n"\
-                        .format(format(i + 1, "0=5"),
-                            record["megnevezes"][0:28],
-                            ezresv(format(float(record["keszlet"]), ".0f")),
-                            record["egyseg"][:3],
-                            ezresv(record["egysegar"]),
-                            record["egyseg"][:3],
-                            ezresv(int(float(record["keszlet"]) * float(record["egysegar"]))))
-        return result
-
-    def waybill2str(articles:dict) -> str:
-        """Build a string of the presented articles to show the waybill."""
-        result = ""
-        for i, article in enumerate(articles):
-            result += "{:>6}   {:<50} {:>12} {}\n"\
-                        .format(format(i + 1, "0=5"),
-                                       article["megnevezes"][0:49],
-                                       ezresv(format(abs(article["valtozas"]),\
-                                                     ".2f")),
-                                       article["egyseg"])
-        return result
-
-
-class FileSession:
-    """Class to handle file operations."""
-    def __init__(self,
-                 stockfolder:str=EXPORTFOLDER,
-                 waybillfolder:str=EXPORTFOLDER,
-                 extension:str=EXPORTEXTENSION) -> None:
-        self._stockfolder = pathlib.Path(stockfolder)
-        self._waybillfolder = pathlib.Path(waybillfolder)
-        self._extension = "." + extension
-        self._create_folders()
-
-    def _create_folders(self) -> None:
-        try:
-            os.mkdir(self._stockfolder)
-        except FileExistsError:
-            pass
-        try:
-            os.mkdir(self._waybillfolder)
-        except FileExistsError:
-            pass
-
-    def export(self, filename:str, content:str, waybill=True) -> None:
-        destination = self._waybillfolder if waybill else self._stockfolder
-        filename = filename + self._extension
-        with open(destination / filename, "w") as f:
-            f.write(content)
 
 
 class RaktarKeszlet(Frame):
@@ -926,13 +835,13 @@ class RaktarKeszlet(Frame):
                                     initialvalue=self.hely.get())
             if not projektszam:
                 return
-            if not valid_projektszam(projektszam):
+            if not valid_projectnr(projektszam):
                 messagebox.showerror(title="Hiba!",
                                      message="Nem megfelelő projektszám!")
                 continue
             break
         filenev = self.szallitolevel_fileneve(projektszam)
-        projektszam = self.formazott_projektszam(projektszam)
+        projektszam = fmt_projectnr(projektszam)
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
@@ -976,7 +885,7 @@ class RaktarKeszlet(Frame):
         f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
 
         f.write("\n\n\n\n")
-        f.write("             ___________________          ___________________")
+        f.write("             ___________________          ___________________\n")
         f.write("               Hartmann Zoltán\n")
         f.write("                 kiállította                   átvette\n")
         f.close()
@@ -986,14 +895,6 @@ class RaktarKeszlet(Frame):
         self.tetelKijelzese(int(self.cikkszam.get()))
 
 
-    def formazott_projektszam(self, projektszam: str) -> str:
-        """Az éé/s vagy éé/ss vagy éé/sss alakban érkező projektszámot éé_sss
-        alakra formázza, ahol az sss-ben vezető nullákkal tölti ki a szám előtti
-        helyet. Ide már valid projektszám érkezik."""
-        mo = valid_projektszam(projektszam)
-        return "{}_{:0>3s}".format(mo["ev"], mo["szam"])
-
-
     def kovetkezo_szallitolevel_szama(self, projektszam: str) -> int:
         """A szállítólevél száma néz ki: 23_076_2.
         Kell egy query az adatbázisból, hány darab azonos projektszámmal kezdődő
@@ -1001,35 +902,14 @@ class RaktarKeszlet(Frame):
         osszes = self.kapcsolat.execute(f"""
         SELECT COUNT(DISTINCT projektszam)
         FROM raktar_naplo
-        WHERE projektszam = "{self.formazott_projektszam(projektszam)}";
+        WHERE projektszam = "{fmt_projectnr(projektszam)}";
         """)
         return osszes.fetchone()[0] + 1
 
 
     def szallitolevel_fileneve(self, projektszam: str) -> str:
-        return "{}_{}".format(self.formazott_projektszam(projektszam),
+        return "{}_{}".format(fmt_projectnr(projektszam),
                               self.kovetkezo_szallitolevel_szama(projektszam))
-
-
-def file_megnyitasa(filenev:str) -> None:
-    if os.name == "posix":
-        tarsitott = "gedit"
-    else:
-        tarsitott = "notepad.exe"
-    subprocess.run([tarsitott, " ", filenev])
-
-
-def projectnr_from_fmt(projectnr:str) -> str:
-    """Convert back the original project number."""
-    year, number = projectnr.split("_")
-    return "{}/{}".format(year, int(number))
-
-
-def valid_projektszam(projektszam:str) -> re.match:
-    """A projektszám éé/s vagy éé/ss vagy éé/sss alakban elfogadható."""
-    pattern = r"(?P<ev>\d{2})\/(?P<szam>\d{1,3})"
-    projektszam_regex = re.compile(pattern)
-    return projektszam_regex.fullmatch(projektszam)
 
 
 def foProgram():
