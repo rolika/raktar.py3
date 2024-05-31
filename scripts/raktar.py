@@ -33,7 +33,7 @@ import os
 import re
 
 from filesession import FileSession, EXPORTFOLDER
-from misc import projectnr_from, valid_projectnr, fmt_projectnr
+from misc import Projectnumber
 from rep import Rep
 from szam_megjelenites import *
 
@@ -834,18 +834,18 @@ class RaktarKeszlet(Frame):
                                  message="Üres a szállítólevél!")
             return
         while True:
-            projektszam = askstring("Költséghely",
-                                    "Kérek egy projektszámot:",
-                                    initialvalue=self.hely.get())
-            if not projektszam:
+            answer = askstring("Költséghely",
+                               "Kérek egy projektszámot:",
+                               initialvalue=self.hely.get())
+            if not answer:
                 return
-            if not valid_projectnr(projektszam):
+            projectnumber = Projectnumber(answer)
+            if not projectnumber:
                 messagebox.showerror(title="Hiba!",
                                      message="Nem megfelelő projektszám!")
                 continue
             break
-        filenev = self.szallitolevel_fileneve(projektszam)
-        projektszam = fmt_projectnr(projektszam)
+        filenev = self.szallitolevel_fileneve(str(projectnumber))
         sorszam = 1
         datumbelyeg = strftime("%Y-%m-%d")
         datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
@@ -873,7 +873,7 @@ class RaktarKeszlet(Frame):
                   sor["egyseg"],
                   sor["valtozas"],
                   datumbelyeg,
-                  projektszam))
+                  str(projectnumber)))
             self.kapcsolat.execute("""
             UPDATE raktar
             SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
@@ -894,26 +894,26 @@ class RaktarKeszlet(Frame):
         f.write("                 kiállította                   átvette\n")
         f.close()
         self.szallitolevel.clear()
-        messagebox.showinfo(title=projektszam,
+        messagebox.showinfo(title=str(projectnumber),
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
 
 
-    def kovetkezo_szallitolevel_szama(self, projektszam: str) -> int:
+    def kovetkezo_szallitolevel_szama(self, projectnumber:Projectnumber) -> int:
         """A szállítólevél száma néz ki: 23_076_2.
         Kell egy query az adatbázisból, hány darab azonos projektszámmal kezdődő
         szállítólevél van eddig."""
         osszes = self.kapcsolat.execute(f"""
         SELECT COUNT(DISTINCT projektszam)
         FROM raktar_naplo
-        WHERE projektszam = "{fmt_projectnr(projektszam)}";
+        WHERE projektszam = "{str(projectnumber)}";
         """)
         return osszes.fetchone()[0] + 1
 
 
-    def szallitolevel_fileneve(self, projektszam: str) -> str:
-        return "{}_{}".format(fmt_projectnr(projektszam),
-                              self.kovetkezo_szallitolevel_szama(projektszam))
+    def szallitolevel_fileneve(self, projectnumber:Projectnumber) -> str:
+        return "{}_{}".format(str(projectnumber),
+                              self.kovetkezo_szallitolevel_szama(projectnumber))
 
 
 def foProgram():

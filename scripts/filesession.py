@@ -2,7 +2,10 @@ import pathlib
 import os
 
 
-EXPORTFOLDER = "data/szallitolevelek/"
+from misc import valid_projectnr, fmt_projectnr
+
+
+EXPORTFOLDER = "data/Szállítólevelek/"
 EXPORTEXTENSION = "txt"
 
 
@@ -32,3 +35,15 @@ class FileSession:
         filename = filename + self._extension
         with open(destination / filename, "w") as f:
             f.write(content)
+    
+    def lookup_projectfolder(self, projectnumber:str) -> pathlib.Path:
+        """Identify an existing or create a new folder for this project number.
+        projectnumber: expected in yy_sss format"""
+        for folder in self._waybillfolder.iterdir():
+            if folder.is_dir():
+                extract = valid_projectnr(str(folder))
+                if extract and (fmt_projectnr(extract) == projectnumber):
+                    return folder
+        folder = self._waybillfolder / projectnumber
+        os.mkdir(folder)
+        return folder
