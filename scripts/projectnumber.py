@@ -21,7 +21,7 @@ class Projectnumber():
         self.year = None
         self.serial = None
         regex = re.compile(PROJECTNUMBER_PATTERN)
-        extract = regex.fullmatch(text)
+        extract = regex.search(text)
         if extract:
             self.year = int(extract["year"])
             self.serial = int(extract["serial"])
@@ -43,3 +43,9 @@ class Projectnumber():
     def __eq__(self, other:object) -> bool:
         """Two projectnumbers are equal if both year and serial are equal."""
         return (self.year == other.year) and (self.serial == other.serial)
+
+
+if __name__ == "__main__":
+    one = Projectnumber("Some Folder Name 24 2")
+    two = Projectnumber("24_002")
+    print(one, two)
