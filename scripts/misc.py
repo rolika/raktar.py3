@@ -26,8 +26,8 @@ class Projectnumber():
         regex = re.compile(PROJECTNUMBER_PATTERN)
         extract = regex.fullmatch(text)
         if extract:
-            self.year = extract["year"]
-            self.serial = extract["serial"]
+            self.year = int(extract["year"])
+            self.serial = int(extract["serial"])
     
     def __bool__(self) -> bool:
         """Return true if this is a valid projectnumber."""
@@ -36,7 +36,7 @@ class Projectnumber():
     def __str__(self) -> str:
         """Projectnumber as a string is the filename-format."""
         assert bool(self)
-        return "{}_{:0>3s}".format(self.year, self.serial)
+        return "{}_{:0>3}".format(self.year, self.serial)
     
     def __repr__(self) -> str:
         """This is the human readable legal form."""
