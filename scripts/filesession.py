@@ -1,49 +1,72 @@
+from datetime import date
 import pathlib
 import os
 
 
-from misc import valid_projectnr, fmt_projectnr
+from projectnumber import Projectnumber
 
 
 EXPORTFOLDER = "data/Szállítólevelek/"
 EXPORTEXTENSION = "txt"
+STOCKNAME = "Raktárkészlet"
 
 
 class FileSession:
-    """Class to handle file operations."""
+    """Class for handling file operations.
+    This inventory uses file handling in one way as writing only.
+    One can export the stock or its selected items, and a waybill will be
+    exported whenever the stock is changed.
+    The waybill exports come to project folder divided into years and months,
+    like: 24_001 -> 2024 -> June.
+    The waybill has a number which looks like 24_001_12, the latter being a
+    serial number, which is always +1 of all waybills in the projectfolder."""
     def __init__(self,
-                 stockfolder:str=EXPORTFOLDER,
-                 waybillfolder:str=EXPORTFOLDER,
-                 extension:str=EXPORTEXTENSION) -> None:
-        self._stockfolder = pathlib.Path(stockfolder)
-        self._waybillfolder = pathlib.Path(waybillfolder)
-        self._extension = "." + extension
+                 projectnumber:Projectnumber=None,
+                 exportfolder:str=EXPORTFOLDER,
+                 extension:str=EXPORTEXTENSION,
+                 stockname:str=STOCKNAME) -> None:
+        self._projectnumber = projectnumber
+        self._exportfolder = pathlib.Path(exportfolder)
+        self._extension = extension
+        self._stockname = stockname
         self._create_folders()
 
     def _create_folders(self) -> None:
         try:
-            os.mkdir(self._stockfolder)
+            os.mkdir(self._exportfolder)
         except FileExistsError:
             pass
-        try:
-            os.mkdir(self._waybillfolder)
-        except FileExistsError:
-            pass
+        if self._projectnumber:
+            self._exportfolder = self._get_folder()
 
-    def export(self, filename:str, content:str, waybill=True) -> None:
-        destination = self._waybillfolder if waybill else self._stockfolder
-        filename = filename + self._extension
-        with open(destination / filename, "w") as f:
+    def export(self, content:str) -> None:
+        if self._projectnumber:
+            filename = "{}_{}.{}".format(self._projectnumber,
+                                         self._count_waybills() + 1,
+                                         self._extension)
+        else:
+            d = date.today()
+            filename = "{}_{}.{}".format(self._stockname,
+                                         d.strftime("%Y%m%d"),
+                                         self._extension)
+        with open(self._exportfolder / filename, "w") as f:
             f.write(content)
-    
-    def lookup_projectfolder(self, projectnumber:str) -> pathlib.Path:
-        """Identify an existing or create a new folder for this project number.
-        projectnumber: expected in yy_sss format"""
-        for folder in self._waybillfolder.iterdir():
+
+    def _get_folder(self) -> pathlib.Path:
+        """Identify an existing or create a new folder for this export."""
+        d = date.today()
+        year = d.strftime("%Y")
+        month = d.strftime("%B").capitalize()
+        self._projectfolder = self._exportfolder / str(self._projectnumber)
+        path = self._projectfolder / year / month
+        for folder in self._exportfolder.iterdir():  # check existing folder
             if folder.is_dir():
-                extract = valid_projectnr(str(folder))
-                if extract and (fmt_projectnr(extract) == projectnumber):
-                    return folder
-        folder = self._waybillfolder / projectnumber
-        os.mkdir(folder)
-        return folder
+                foldernumber = Projectnumber(folder.name)
+                if foldernumber == self._projectnumber:
+                    path = folder / year / month
+                    break
+        os.makedirs(path, exist_ok=True)
+        return path
+    
+    def _count_waybills(self) -> int:
+        return sum([len(files) for r, d, files in os.walk(self._projectfolder)])
