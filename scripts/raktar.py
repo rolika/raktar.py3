@@ -33,7 +33,7 @@ import os
 import re
 
 from filesession import FileSession, EXPORTFOLDER
-from misc import Projectnumber
+from projectnumber import Projectnumber
 from rep import Rep
 from szam_megjelenites import *
 
