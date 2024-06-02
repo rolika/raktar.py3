@@ -27,7 +27,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter.simpledialog import askstring
-from time import strftime  # időbélyeghez
 import os
 
 from databasesession import DatabaseSession
