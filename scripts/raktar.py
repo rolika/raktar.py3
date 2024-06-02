@@ -610,38 +610,19 @@ class RaktarKeszlet(Frame):
             fajta = "mentve, mint új tétel"
             if valtozas < 0:
                 valtozas = 0
-            self.kapcsolat.execute("""
-            INSERT INTO raktar(keszlet,
-                               megnevezes,
-                               becenev,
-                               gyarto,
-                               leiras,
-                               szin,
-                               megjegyzes,
-                               egyseg,
-                               egysegar,
-                               kiszereles,
-                               hely,
-                               lejarat,
-                               gyartasido,
-                               letrehozas,
-                               utolso_modositas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (valtozas,
-                  megnevezes,
-                  self.becenev.get(),
-                  self.gyarto.get(),
-                  self.leiras.get(),
-                  self.szin.get(),
-                  self.megjegyzes.get(),
-                  self.egyseg.get(),
-                  egysegar,
-                  kiszereles,
-                  self.hely.get(),
-                  self.lejarat.get(),
-                  self.gyartasido.get(),
-                  datumbelyeg,
-                  datumbelyeg))
+            self.databasesession.insert_item(valtozas,
+                                             megnevezes,
+                                             self.becenev.get(),
+                                             self.gyarto.get(),
+                                             self.leiras.get(),
+                                             self.szin.get(),
+                                             self.megjegyzes.get(),
+                                             self.egyseg.get(),
+                                             egysegar,
+                                             kiszereles,
+                                             self.hely.get(),
+                                             self.lejarat.get(),
+                                             self.gyartasido.get())
             self.hatra.config(state=NORMAL)  # első indításnál bekapcsol
             self.elore.config(state=NORMAL)
             self.frm_lista.grid(row=0, column=3, rowspan=5, sticky=NW)
@@ -649,9 +630,7 @@ class RaktarKeszlet(Frame):
             self.teljesListaKeszitese()
             self.listaKijelzese()
             # utolsó mentett elem előkerítése
-            self.tetelKijelzese(self.kurzor.execute("""
-            SELECT last_insert_rowid()
-            """).fetchone()[0])
+            self.tetelKijelzese(self.databasesession.last_rowid())
         print("{} {}.".format(megnevezes, fajta))
 
     def ujTetel(self):

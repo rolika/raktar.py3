@@ -101,3 +101,53 @@ class DatabaseSession(sqlite3.Connection):
                       shelflife,
                       manufacturing_date,
                       primary_key))
+
+    def insert_item(self,
+                    stock:float,
+                    name:str,
+                    nickname:str,
+                    manufacturer:str,
+                    description:str,
+                    color:str,
+                    comment:str,
+                    unit:str,
+                    unitprice:float,
+                    packaging:float,
+                    place:str,
+                    shelflife:float,
+                    manufacturing_date:str) -> None:
+        with self:
+            self.execute("""
+                INSERT INTO raktar(keszlet,
+                                   megnevezes,
+                                   becenev,
+                                   gyarto,
+                                   leiras,
+                                   szin,
+                                   megjegyzes,
+                                   egyseg,
+                                   egysegar,
+                                   kiszereles,
+                                   hely,
+                                   lejarat,
+                                   gyartasido,
+                                   letrehozas,
+                                   utolso_modositas)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        (SELECT date()), (SELECT date()))
+                """, (stock,
+                      name,
+                      nickname,
+                      manufacturer,
+                      description,
+                      color,
+                      comment,
+                      unit,
+                      unitprice,
+                      packaging,
+                      place,
+                      shelflife,
+                      manufacturing_date))
+
+    def last_rowid(self) -> int:
+        return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
