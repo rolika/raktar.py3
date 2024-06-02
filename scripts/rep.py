@@ -1,3 +1,4 @@
+from datetime import date
 import sqlite3
 from typing import Iterable
 
@@ -46,7 +47,8 @@ class Rep:
                             record["egyseg"][:3],
                             ezresv(record["egysegar"]),
                             record["egyseg"][:3],
-                            ezresv(int(float(record["keszlet"]) * float(record["egysegar"]))))
+                            ezresv(int(float(record["keszlet"])\
+                                       * float(record["egysegar"]))))
         return result
 
     def waybill2str(articles:dict) -> str:
@@ -59,4 +61,21 @@ class Rep:
                                        ezresv(format(abs(article["valtozas"]),\
                                                      ".2f")),
                                        article["egyseg"])
+        return result
+
+    def waybill_header(organization:tuple, costcentre:tuple) -> str:
+        result = ("\nSzállító:                                Projekt/Vevő:")
+        for row in zip(organization, costcentre):
+            result += "\n{:<41}{}".format(row[0], row[1])
+        result += "\n\n"
+        return result
+
+    def waybill_footer() -> str:
+        d = date.today()
+        result = "\nKelt: Herend, {}\n\n\n\n\n".format(d.strftime("%Y.%m.%d."))
+        result += "\n\n\n\n"
+        result +=\
+            "              ___________________          ___________________\n"
+        result += "                     kiadta                     átvette\n"
+        result += "                 Hartmann Zoltán\n"
         return result
