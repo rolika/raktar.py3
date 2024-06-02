@@ -585,42 +585,24 @@ class RaktarKeszlet(Frame):
             megnevezes = megnevezes[0].upper() + megnevezes[1:]
         except:
             pass
-        # dátumbélyeg formátuma: 2015-02-27 SQL standard
-        datumbelyeg = strftime("%Y-%m-%d")
         # ha van (kijelzett!) cikkszám, csak módosít
-        if self.cikkszam.get():
+        cikkszam = self.cikkszam.get()
+        if cikkszam:
             fajta = "módosítva"
-            self.kapcsolat.execute("""
-            UPDATE raktar
-            SET megnevezes = ?,
-                becenev = ?,
-                gyarto = ?,
-                leiras = ?,
-                szin = ?,
-                megjegyzes = ?,
-                egyseg = ?,
-                egysegar = ?,
-                kiszereles = ?,
-                hely = ?,
-                lejarat = ?,
-                gyartasido = ?,
-                utolso_modositas = ?
-            WHERE cikkszam = ?
-            """, (megnevezes,
-                  self.becenev.get(),
-                  self.gyarto.get(),
-                  self.leiras.get(),
-                  self.szin.get(),
-                  self.megjegyzes.get(),
-                  self.egyseg.get(),
-                  egysegar,
-                  kiszereles,
-                  self.hely.get(),
-                  self.lejarat.get(),
-                  self.gyartasido.get(),
-                  datumbelyeg,
-                  self.cikkszam.get()))
-            self.kapcsolat.commit()
+            self.databasesession.update_item(
+                cikkszam,
+                megnevezes,
+                self.becenev.get(),
+                self.gyarto.get(),
+                self.leiras.get(),
+                self.szin.get(),
+                self.megjegyzes.get(),
+                self.egyseg.get(),
+                egysegar,
+                kiszereles,
+                self.hely.get(),
+                self.lejarat.get(),
+                self.gyartasido.get())
             # módosításkor előfordul, hogy a készlet is változik
             self.keszletValtozasa(1)
         # ha nincs, egy új bejegyzés, készlet-változás lesz a kiinduló készlet

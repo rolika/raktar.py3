@@ -56,3 +56,48 @@ class DatabaseSession(sqlite3.Connection):
             self.execute("""UPDATE raktar
                             SET keszlet = ?, utolso_modositas = (SELECT date())
                             WHERE cikkszam = ?;""", (quantity, primary_key))
+
+    def update_item(self,
+                    primary_key:int,
+                    name:str,
+                    nickname:str,
+                    manufacturer:str,
+                    description:str,
+                    color:str,
+                    comment:str,
+                    unit:str,
+                    unitprice:float,
+                    packaging:float,
+                    place:str,
+                    shelflife:float,
+                    manufacturing_date:str) -> None:
+        with self:
+            self.execute("""
+                UPDATE raktar
+                SET megnevezes = ?,
+                    becenev = ?,
+                    gyarto = ?,
+                    leiras = ?,
+                    szin = ?,
+                    megjegyzes = ?,
+                    egyseg = ?,
+                    egysegar = ?,
+                    kiszereles = ?,
+                    hely = ?,
+                    lejarat = ?,
+                    gyartasido = ?,
+                    utolso_modositas = (SELECT date())
+                WHERE cikkszam = ?;
+                """, (name,
+                      nickname,
+                      manufacturer,
+                      description,
+                      color,
+                      comment,
+                      unit,
+                      unitprice,
+                      packaging,
+                      place,
+                      shelflife,
+                      manufacturing_date,
+                      primary_key))
