@@ -32,7 +32,7 @@ import sqlite3
 import os
 import re
 
-from filesession import FileSession, EXPORTFOLDER
+from filesession import FileSession
 from projectnumber import Projectnumber
 from rep import Rep
 from szam_megjelenites import *
@@ -46,7 +46,9 @@ WINDOWS_IKON = "data/pohlen.ico"
 LINUX_IKON = "data/pohlen.gif"
 ADATBAZIS = "data/adatok.db"
 SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
-VEVO = ["", "", ""]
+VEVO = [".............................",
+        ".............................",
+        "............................."]
 JELOLOSZIN = ("green", "darkgreen")
 #grid-jellemzők
 HOSSZU_MEZO = 42
@@ -70,7 +72,6 @@ class RaktarKeszlet(Frame):
         self.vezerloValtozok()
         self.widgetekElhelyezese()
         self.adatbazisInicializalasa()
-        self._filesession = FileSession()
         # esc-re törli a kiválasztást
         self.bind_all("<Escape>", self.kilepesKivalasztasbol)
         self.bind_all("<Control-s>", self.tetelMentese)
@@ -814,15 +815,17 @@ class RaktarKeszlet(Frame):
         print(self.show_stock())
 
     def raktarExport(self) -> None:
-        filename = "raktar_" + strftime("%Y%m%d")
-        self._filesession.export(filename, self.show_stock(), False)
+        filesession = FileSession()
+        filesession.export(self.show_stock())
         messagebox.showinfo(message="Raktárkészlet exportálva.")
 
     def show_waybill(self) -> str:
         result = Rep.cimsor("szállítólevél")
+        result += Rep.waybill_header(SZERVEZET, VEVO)
         result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
         result += Rep.waybill2str(self.szallitolevel)
         result += Rep.vonal()
+        result += Rep.waybill_footer()
         return result
 
     def szallitoLevelKijelzese(self):
@@ -845,19 +848,9 @@ class RaktarKeszlet(Frame):
                                      message="Nem megfelelő projektszám!")
                 continue
             break
-        filenev = self.szallitolevel_fileneve(str(projectnumber))
-        sorszam = 1
+        filesession = FileSession(projectnumber)
+        filesession.export(self.show_waybill())
         datumbelyeg = strftime("%Y-%m-%d")
-        datumbelyeg_kijelzo = strftime("%Y.%m.%d.")
-        dirfilenev = EXPORTFOLDER + filenev + ".txt"
-        f = open(dirfilenev, "w")
-        f.write(Rep.cimsor(szoveg="szállítólevél"))
-        f.write("{:>79}".format("száma: {}\n".format(filenev)))
-        f.write("\nSzállító:                                Vevő:")
-        for sor in zip(SZERVEZET, VEVO):
-            f.write("\n{:<41}{}".format(sor[0], sor[1]))
-        f.write("\n\n")
-        f.write(Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7))
         for sor in self.szallitolevel:
             self.kapcsolat.execute("""
             INSERT INTO raktar_naplo(
@@ -878,42 +871,11 @@ class RaktarKeszlet(Frame):
             UPDATE raktar
             SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
             """, (float(sor["keszlet"]), datumbelyeg, sor["cikkszam"]))
-            f.write("{:>6}   {:<50} {:>12} {}\n"\
-                    .format(format(sorszam, "0=5"),
-                            sor["megnevezes"][0:49],
-                            ezresv(format(abs(sor["valtozas"]), ".2f")),
-                            sor["egyseg"]))
-            sorszam += 1
         self.kapcsolat.commit()
-        f.write(Rep.vonal())
-        f.write("\nKelt: Herend, {}\n".format(datumbelyeg_kijelzo))
-
-        f.write("\n\n\n\n")
-        f.write("             ___________________          ___________________\n")
-        f.write("               Hartmann Zoltán\n")
-        f.write("                 kiállította                   átvette\n")
-        f.close()
         self.szallitolevel.clear()
         messagebox.showinfo(title=str(projectnumber),
                             message="Szállítólevél exportálva.")
         self.tetelKijelzese(int(self.cikkszam.get()))
-
-
-    def kovetkezo_szallitolevel_szama(self, projectnumber:Projectnumber) -> int:
-        """A szállítólevél száma néz ki: 23_076_2.
-        Kell egy query az adatbázisból, hány darab azonos projektszámmal kezdődő
-        szállítólevél van eddig."""
-        osszes = self.kapcsolat.execute(f"""
-        SELECT COUNT(DISTINCT projektszam)
-        FROM raktar_naplo
-        WHERE projektszam = "{str(projectnumber)}";
-        """)
-        return osszes.fetchone()[0] + 1
-
-
-    def szallitolevel_fileneve(self, projectnumber:Projectnumber) -> str:
-        return "{}_{}".format(str(projectnumber),
-                              self.kovetkezo_szallitolevel_szama(projectnumber))
 
 
 def foProgram():
