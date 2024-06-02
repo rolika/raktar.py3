@@ -79,3 +79,31 @@ class Rep:
         result += "                     kiadta                     átvette\n"
         result += "                 Hartmann Zoltán\n"
         return result
+
+    def show_stock(cursor:sqlite3.Cursor, articles:Iterable[int], value:float) -> str:
+        d = date.today()
+        result = ""
+        result += Rep.cimsor("raktárkészlet")
+        result += Rep.fejlec(sorszám=8,
+                             megnevezés=33,
+                             készlet=14,
+                             egységár=16,
+                             érték=9)
+        result += Rep.stock2str(cursor, articles)
+        result += Rep.vonal()
+        result += "Kiválasztás értéke összesen:                            \
+         {:>12} Ft\n".format(ezresv(value))
+        result += Rep.vonal()
+        result += "{}-i állapot.\n".format(d.strftime("%Y.%m.%d"))
+        return result
+
+    def show_waybill(waybill:list,
+                     organization:tuple[str],
+                     customer:tuple[str]) -> str:
+        result = Rep.cimsor("szállítólevél")
+        result += Rep.waybill_header(organization, customer)
+        result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
+        result += Rep.waybill2str(waybill)
+        result += Rep.vonal()
+        result += Rep.waybill_footer()
+        return result

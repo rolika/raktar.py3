@@ -660,41 +660,18 @@ class RaktarKeszlet(Frame):
         self.databasesession.mark_item(cikkszam, szin)
         self.tetelKijelzese(cikkszam)
 
-    def show_stock(self) -> str:
-        result = ""
-        result += Rep.cimsor("raktárkészlet")
-        result += Rep.fejlec(sorszám=8,
-                             megnevezés=33,
-                             készlet=14,
-                             egységár=16,
-                             érték=9)
-        result += Rep.stock2str(self.kurzor, self.cikkszamok)
-        result += Rep.vonal()
-        result += "Kiválasztás értéke összesen:                            \
-         {:>12} Ft\n".format(ezresv(self.kivalasztasErteke()))
-        result += Rep.vonal()
-        result += "{}-i állapot.\n".format(strftime("%Y.%m.%d"))
-        return result
-
     def raktarKijelzese(self):
-        print(self.show_stock())
+        print(Rep.show_stock(
+            self.kurzor, self.cikkszamok, self.kivalasztasErteke()))
 
     def raktarExport(self) -> None:
         filesession = FileSession()
-        filesession.export(self.show_stock())
+        filesession.export(Rep.show_stock(
+            self.kurzor, self.cikkszamok, self.kivalasztasErteke()))
         messagebox.showinfo(message="Raktárkészlet exportálva.")
 
-    def show_waybill(self) -> str:
-        result = Rep.cimsor("szállítólevél")
-        result += Rep.waybill_header(SZERVEZET, VEVO)
-        result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
-        result += Rep.waybill2str(self.szallitolevel)
-        result += Rep.vonal()
-        result += Rep.waybill_footer()
-        return result
-
     def szallitoLevelKijelzese(self):
-        print(self.show_waybill())
+        print(Rep.show_waybill(self.szallitolevel, SZERVEZET, VEVO))
 
     def szallitoLevelExport(self):
         if not self.szallitolevel:
@@ -714,7 +691,8 @@ class RaktarKeszlet(Frame):
                 continue
             break
         filesession = FileSession(projectnumber)
-        filesession.export(self.show_waybill())
+        filesession.export(
+            Rep.show_waybill(self.szallitolevel, SZERVEZET, VEVO))
         for sor in self.szallitolevel:
             self.databasesession.log_change(sor["megnevezes"],
                                             sor["egysegar"],
