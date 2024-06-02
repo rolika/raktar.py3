@@ -1,5 +1,4 @@
 from datetime import date
-import sqlite3
 from typing import Iterable
 
 from databasesession import DatabaseSession
