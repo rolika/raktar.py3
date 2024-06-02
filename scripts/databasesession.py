@@ -151,3 +151,12 @@ class DatabaseSession(sqlite3.Connection):
 
     def get_last_rowid(self) -> int:
         return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
+
+    def filter_for(self, term:str) -> sqlite3.Cursor:
+        return self.execute(f"""
+SELECT cikkszam, megnevezes, becenev, gyarto, leiras, szin, megjegyzes, hely
+FROM raktar
+WHERE
+lower(megnevezes || becenev || gyarto || leiras || szin || megjegyzes || hely)
+LIKE "%{term.lower()}%"
+ORDER BY gyarto, megnevezes;""")

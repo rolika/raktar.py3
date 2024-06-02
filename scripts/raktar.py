@@ -455,7 +455,7 @@ class RaktarKeszlet(Frame):
 
     def raktarErtek(self):
         raktarertek = 0
-        for sor in self.databasesession.select_all_items().fetchall():
+        for sor in self.databasesession.select_all_items():
             raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
@@ -635,8 +635,7 @@ class RaktarKeszlet(Frame):
 
     def ujTetel(self):
         self.cikkszamok.clear()
-        self.kurzor.execute("SELECT cikkszam FROM raktar")
-        for sor in self.kurzor.fetchall():
+        for sor in self.databasesession.select_all_items():
             self.cikkszamok.append(sor["cikkszam"])
         self.cikkszam.set("")
         self.megnevezes_bevitel.focus()
@@ -645,28 +644,9 @@ class RaktarKeszlet(Frame):
         print("Szűrés a {} kifejezésre.".format(szuro))
         szuro = szuro.lower()
         self.cikkszamok.clear()
-        self.kurzor.execute("""
-        SELECT cikkszam,
-                megnevezes,
-                becenev,
-                gyarto,
-                leiras,
-                szin,
-                megjegyzes,
-                hely
-        FROM raktar
-        ORDER BY gyarto, megnevezes
-        """)
-        for sor in self.kurzor.fetchall():
-            if szuro in sor["megnevezes"].lower() or \
-                szuro in sor["becenev"].lower() or \
-                    szuro in sor["gyarto"].lower() or \
-                        szuro in sor["leiras"].lower() or \
-                            szuro in sor["szin"] or \
-                                szuro in sor["megjegyzes"].lower() or \
-                                    szuro in sor["hely"].lower():
-                self.cikkszamok.append(sor["cikkszam"])
-                print(".", end="")
+        for row in self.databasesession.filter_for(szuro):
+            self.cikkszamok.append(row["cikkszam"])
+            print(".", end="")
         print()
         if len(self.cikkszamok) == 0:  # ha nincs találat
             self.teljesListaKeszitese()
