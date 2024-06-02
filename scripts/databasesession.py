@@ -149,5 +149,5 @@ class DatabaseSession(sqlite3.Connection):
                       shelflife,
                       manufacturing_date))
 
-    def last_rowid(self) -> int:
+    def get_last_rowid(self) -> int:
         return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]

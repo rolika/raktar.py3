@@ -630,7 +630,7 @@ class RaktarKeszlet(Frame):
             self.teljesListaKeszitese()
             self.listaKijelzese()
             # utolsó mentett elem előkerítése
-            self.tetelKijelzese(self.databasesession.last_rowid())
+            self.tetelKijelzese(self.databasesession.get_last_rowid())
         print("{} {}.".format(megnevezes, fajta))
 
     def ujTetel(self):
