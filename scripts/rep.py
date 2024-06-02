@@ -80,7 +80,9 @@ class Rep:
         result += "                 Hartmann Zoltán\n"
         return result
 
-    def show_stock(cursor:sqlite3.Cursor, articles:Iterable[int], value:float) -> str:
+    def show_stock(cursor:sqlite3.Cursor,
+                   articles:Iterable[int],
+                   value:float) -> str:
         d = date.today()
         result = ""
         result += Rep.cimsor("raktárkészlet")
