@@ -28,23 +28,22 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter.simpledialog import askstring
 from time import strftime  # időbélyeghez
-import sqlite3
 import os
-import re
 
+from databasesession import DatabaseSession
 from filesession import FileSession
 from projectnumber import Projectnumber
 from rep import Rep
 from szam_megjelenites import *
 
 
-__version__ = "0.52"
+__version__ = "0.55"
 
 
 PROGRAM = "Készlet-nyilvántartó"
 WINDOWS_IKON = "data/pohlen.ico"
 LINUX_IKON = "data/pohlen.gif"
-ADATBAZIS = "data/adatok.db"
+DATABASE = "data/adatok.db"
 SZERVEZET = ["Pohlen-Dach Hungária Bt.", "8440-Herend", "Dózsa utca 49."]
 VEVO = [".............................",
         ".............................",
@@ -382,37 +381,8 @@ class RaktarKeszlet(Frame):
                     .grid(row=1, column=0, padx=PADX, pady=PADY)
 
     def adatbazisInicializalasa(self):
-        self.kapcsolat = sqlite3.connect(ADATBAZIS)
-        self.kapcsolat.execute("""
-        CREATE TABLE IF NOT EXISTS raktar(
-            cikkszam INTEGER PRIMARY KEY ASC,
-            keszlet,
-            megnevezes,
-            becenev,
-            gyarto,
-            leiras,
-            megjegyzes,
-            egyseg,
-            egysegar,
-            kiszereles,
-            hely,
-            lejarat,
-            gyartasido,
-            szin,
-            letrehozas,
-            utolso_modositas)
-            """)
-        self.kapcsolat.execute("""
-        CREATE TABLE IF NOT EXISTS raktar_naplo(
-            azonosito INTEGER PRIMARY KEY ASC,
-            megnevezes,
-            egysegar,
-            egyseg,
-            valtozas,
-            datum,
-            projektszam)
-            """)
-        self.kapcsolat.row_factory = sqlite3.Row
+        self.kapcsolat = DatabaseSession(DATABASE)
+        self.databasesession = DatabaseSession(DATABASE)
         self.kurzor = self.kapcsolat.cursor()
         self.teljesListaKeszitese()
 
@@ -422,21 +392,11 @@ class RaktarKeszlet(Frame):
 
     def teljesListaKeszitese(self):
         self.cikkszamok.clear()
-        self.kurzor.execute("""
-        SELECT *
-        FROM raktar
-        ORDER BY gyarto, megnevezes;
-        """)
-        for sor in self.kurzor.fetchall():
+        for sor in self.databasesession.select_all_items().fetchall():
             self.cikkszamok.append(sor["cikkszam"])
 
     def tetelKijelzese(self, cikkszam):
-        self.kurzor.execute("""
-        SELECT *
-        FROM raktar
-        WHERE cikkszam = {}
-        """.format(cikkszam))
-        sor = self.kurzor.fetchone()
+        sor = self.databasesession.select_item(cikkszam).fetchone()
         keszlet = float(sor["keszlet"])
         egysegar = sor["egysegar"]
         keszletertek = int(float(keszlet) * egysegar)
@@ -467,12 +427,7 @@ class RaktarKeszlet(Frame):
     def listaKijelzese(self):
         lista = ""
         for cikkszam in self.cikkszamok:
-            self.kurzor.execute("""
-            SELECT megnevezes, gyarto, keszlet, egyseg
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
+            sor = self.databasesession.select_item(cikkszam).fetchone()
             szokoz = " " if sor["gyarto"] else ""
             egy_sor = "{:<42}{:>8} {}"\
                 .format((sor["gyarto"] + szokoz + sor["megnevezes"])[0:40],
@@ -482,12 +437,7 @@ class RaktarKeszlet(Frame):
             lista += (egy_sor + " ")
         self.lista.set(lista)
         for i, cikkszam in enumerate(self.cikkszamok):
-            self.kurzor.execute("""
-            SELECT jeloles
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
+            sor = self.databasesession.select_item(cikkszam).fetchone()
             if sor["jeloles"]:
                 alap, valasztott = sor["jeloles"].split(" ")
                 self.listbox.itemconfig(i, bg=alap, selectbackground=valasztott)
@@ -497,22 +447,13 @@ class RaktarKeszlet(Frame):
     def kivalasztasErteke(self):
         raktarertek = 0
         for cikkszam in self.cikkszamok:
-            self.kurzor.execute("""
-            SELECT keszlet, egysegar
-            FROM raktar
-            WHERE cikkszam = {}
-            """.format(cikkszam))
-            sor = self.kurzor.fetchone()
+            sor = self.databasesession.select_item(cikkszam).fetchone()
             raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
     def raktarErtek(self):
         raktarertek = 0
-        self.kurzor.execute("""
-        SELECT keszlet, egysegar
-        FROM raktar
-        """)
-        for sor in self.kurzor.fetchall():
+        for sor in self.databasesession.select_all_items():
             raktarertek += int(float(sor["keszlet"]) * float(sor["egysegar"]))
         return raktarertek
 
@@ -553,19 +494,15 @@ class RaktarKeszlet(Frame):
 
     def keszletValtozasa(self, _):
         # csak meglévőt módosít! új tételt előbb menteni kell
-        if self.cikkszam.get():  # ha nincs cikkszám (új tétel), figyelmeztet
+        cikkszam = self.cikkszam.get()
+        if cikkszam:  # ha nincs cikkszám (új tétel), figyelmeztet
             v = self.valtozas.get()
             if v:  # ha üres a bemenet, nem csinál semmit
                 try:
                     valtozas = szamot(v)
                 except:
                     valtozas = 0
-                self.kurzor.execute("""
-                SELECT keszlet, megnevezes, egyseg, egysegar
-                FROM raktar
-                WHERE cikkszam = {}
-                """.format(self.cikkszam.get()))
-                sor = self.kurzor.fetchone()
+                sor = self.databasesession.select_item(int(cikkszam)).fetchone()
                 keszlet = float(sor["keszlet"])
                 uj_keszlet = valtozas
 
@@ -573,7 +510,7 @@ class RaktarKeszlet(Frame):
                 if v.startswith(("-", "+")):
                     # van már a szállítóban azonos tétel?
                     for meglevo in self.szallitolevel:
-                        if self.cikkszam.get() == meglevo["cikkszam"]:
+                        if cikkszam == meglevo["cikkszam"]:
                             # ha igen, változik a készlet az adatbázishoz képest
                             keszlet += meglevo["valtozas"]
                     uj_keszlet = keszlet + valtozas
@@ -583,13 +520,7 @@ class RaktarKeszlet(Frame):
                         .askokcancel(title=sor["megnevezes"],\
             message="Ez beállít {} {}-t új készletként.\nBiztos vagy benne?"\
                         .format(uj_keszlet, sor["egyseg"])):
-                        datumbelyeg = strftime("%Y-%m-%d")
-                        self.kapcsolat.execute("""
-                        UPDATE raktar
-                        SET keszlet = ?, utolso_modositas = ?
-                        WHERE cikkszam = ?
-                        """, (uj_keszlet, datumbelyeg, self.cikkszam.get()))
-                        self.kapcsolat.commit()
+                        self.databasesession.set_stock_quantity(cikkszam, uj_keszlet)
                     else:
                         return
 
@@ -611,7 +542,7 @@ class RaktarKeszlet(Frame):
                 if uj_keszlet >= 0:
                     if mozgas:
                         szallito = {}
-                        szallito["cikkszam"] = self.cikkszam.get()
+                        szallito["cikkszam"] = cikkszam
                         szallito["megnevezes"] = sor["megnevezes"]
                         szallito["valtozas"] = valtozas
                         szallito["keszlet"] = uj_keszlet
@@ -652,42 +583,24 @@ class RaktarKeszlet(Frame):
             megnevezes = megnevezes[0].upper() + megnevezes[1:]
         except:
             pass
-        # dátumbélyeg formátuma: 2015-02-27 SQL standard
-        datumbelyeg = strftime("%Y-%m-%d")
         # ha van (kijelzett!) cikkszám, csak módosít
-        if self.cikkszam.get():
+        cikkszam = self.cikkszam.get()
+        if cikkszam:
             fajta = "módosítva"
-            self.kapcsolat.execute("""
-            UPDATE raktar
-            SET megnevezes = ?,
-                becenev = ?,
-                gyarto = ?,
-                leiras = ?,
-                szin = ?,
-                megjegyzes = ?,
-                egyseg = ?,
-                egysegar = ?,
-                kiszereles = ?,
-                hely = ?,
-                lejarat = ?,
-                gyartasido = ?,
-                utolso_modositas = ?
-            WHERE cikkszam = ?
-            """, (megnevezes,
-                  self.becenev.get(),
-                  self.gyarto.get(),
-                  self.leiras.get(),
-                  self.szin.get(),
-                  self.megjegyzes.get(),
-                  self.egyseg.get(),
-                  egysegar,
-                  kiszereles,
-                  self.hely.get(),
-                  self.lejarat.get(),
-                  self.gyartasido.get(),
-                  datumbelyeg,
-                  self.cikkszam.get()))
-            self.kapcsolat.commit()
+            self.databasesession.update_item(
+                cikkszam,
+                megnevezes,
+                self.becenev.get(),
+                self.gyarto.get(),
+                self.leiras.get(),
+                self.szin.get(),
+                self.megjegyzes.get(),
+                self.egyseg.get(),
+                egysegar,
+                kiszereles,
+                self.hely.get(),
+                self.lejarat.get(),
+                self.gyartasido.get())
             # módosításkor előfordul, hogy a készlet is változik
             self.keszletValtozasa(1)
         # ha nincs, egy új bejegyzés, készlet-változás lesz a kiinduló készlet
@@ -695,38 +608,19 @@ class RaktarKeszlet(Frame):
             fajta = "mentve, mint új tétel"
             if valtozas < 0:
                 valtozas = 0
-            self.kapcsolat.execute("""
-            INSERT INTO raktar(keszlet,
-                               megnevezes,
-                               becenev,
-                               gyarto,
-                               leiras,
-                               szin,
-                               megjegyzes,
-                               egyseg,
-                               egysegar,
-                               kiszereles,
-                               hely,
-                               lejarat,
-                               gyartasido,
-                               letrehozas,
-                               utolso_modositas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (valtozas,
-                  megnevezes,
-                  self.becenev.get(),
-                  self.gyarto.get(),
-                  self.leiras.get(),
-                  self.szin.get(),
-                  self.megjegyzes.get(),
-                  self.egyseg.get(),
-                  egysegar,
-                  kiszereles,
-                  self.hely.get(),
-                  self.lejarat.get(),
-                  self.gyartasido.get(),
-                  datumbelyeg,
-                  datumbelyeg))
+            self.databasesession.insert_item(valtozas,
+                                             megnevezes,
+                                             self.becenev.get(),
+                                             self.gyarto.get(),
+                                             self.leiras.get(),
+                                             self.szin.get(),
+                                             self.megjegyzes.get(),
+                                             self.egyseg.get(),
+                                             egysegar,
+                                             kiszereles,
+                                             self.hely.get(),
+                                             self.lejarat.get(),
+                                             self.gyartasido.get())
             self.hatra.config(state=NORMAL)  # első indításnál bekapcsol
             self.elore.config(state=NORMAL)
             self.frm_lista.grid(row=0, column=3, rowspan=5, sticky=NW)
@@ -734,15 +628,12 @@ class RaktarKeszlet(Frame):
             self.teljesListaKeszitese()
             self.listaKijelzese()
             # utolsó mentett elem előkerítése
-            self.tetelKijelzese(self.kurzor.execute("""
-            SELECT last_insert_rowid()
-            """).fetchone()[0])
+            self.tetelKijelzese(self.databasesession.get_last_rowid())
         print("{} {}.".format(megnevezes, fajta))
 
     def ujTetel(self):
         self.cikkszamok.clear()
-        self.kurzor.execute("SELECT cikkszam FROM raktar")
-        for sor in self.kurzor.fetchall():
+        for sor in self.databasesession.select_all_items():
             self.cikkszamok.append(sor["cikkszam"])
         self.cikkszam.set("")
         self.megnevezes_bevitel.focus()
@@ -751,28 +642,9 @@ class RaktarKeszlet(Frame):
         print("Szűrés a {} kifejezésre.".format(szuro))
         szuro = szuro.lower()
         self.cikkszamok.clear()
-        self.kurzor.execute("""
-        SELECT cikkszam,
-                megnevezes,
-                becenev,
-                gyarto,
-                leiras,
-                szin,
-                megjegyzes,
-                hely
-        FROM raktar
-        ORDER BY gyarto, megnevezes
-        """)
-        for sor in self.kurzor.fetchall():
-            if szuro in sor["megnevezes"].lower() or \
-                szuro in sor["becenev"].lower() or \
-                    szuro in sor["gyarto"].lower() or \
-                        szuro in sor["leiras"].lower() or \
-                            szuro in sor["szin"] or \
-                                szuro in sor["megjegyzes"].lower() or \
-                                    szuro in sor["hely"].lower():
-                self.cikkszamok.append(sor["cikkszam"])
-                print(".", end="")
+        for row in self.databasesession.filter_for(szuro):
+            self.cikkszamok.append(row["cikkszam"])
+            print(".", end="")
         print()
         if len(self.cikkszamok) == 0:  # ha nincs találat
             self.teljesListaKeszitese()
@@ -781,19 +653,12 @@ class RaktarKeszlet(Frame):
     def megjelol(self):
         valasztas = self.listbox.curselection()
         hatterszin = self.listbox.itemcget(valasztas[0], "background")
+        cikkszam = self.cikkszamok[valasztas[0]]
+        szin = JELOLOSZIN[0] + " " + JELOLOSZIN[1]
         if hatterszin in JELOLOSZIN:
-            self.kurzor.execute("""
-            UPDATE raktar
-            SET jeloles = ?
-            WHERE cikkszam = ?
-            """, ("", self.cikkszamok[valasztas[0]]))
-        else:
-            self.kurzor.execute("""
-            UPDATE raktar SET jeloles = ? WHERE cikkszam = ?
-            """, (JELOLOSZIN[0] + " " + JELOLOSZIN[1],
-                  self.cikkszamok[valasztas[0]]))
-        self.kapcsolat.commit()
-        self.tetelKijelzese(self.cikkszamok[valasztas[0]])
+            szin = ""
+        self.databasesession.mark_item(cikkszam, szin)
+        self.tetelKijelzese(cikkszam)
 
     def show_stock(self) -> str:
         result = ""
@@ -850,28 +715,14 @@ class RaktarKeszlet(Frame):
             break
         filesession = FileSession(projectnumber)
         filesession.export(self.show_waybill())
-        datumbelyeg = strftime("%Y-%m-%d")
         for sor in self.szallitolevel:
-            self.kapcsolat.execute("""
-            INSERT INTO raktar_naplo(
-                megnevezes,
-                egysegar,
-                egyseg,
-                valtozas,
-                datum,
-                projektszam)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, (sor["megnevezes"],
-                  sor["egysegar"],
-                  sor["egyseg"],
-                  sor["valtozas"],
-                  datumbelyeg,
-                  str(projectnumber)))
-            self.kapcsolat.execute("""
-            UPDATE raktar
-            SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
-            """, (float(sor["keszlet"]), datumbelyeg, sor["cikkszam"]))
-        self.kapcsolat.commit()
+            self.databasesession.log_change(sor["megnevezes"],
+                                            sor["egysegar"],
+                                            sor["egyseg"],
+                                            sor["valtozas"],
+                                            str(projectnumber))
+            self.databasesession.set_stock_quantity(sor["cikkszam"],
+                                                    float(sor["keszlet"]))
         self.szallitolevel.clear()
         messagebox.showinfo(title=str(projectnumber),
                             message="Szállítólevél exportálva.")
@@ -885,5 +736,3 @@ def foProgram():
 
 if __name__ == "__main__":
     foProgram()
-
-
