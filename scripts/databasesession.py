@@ -160,8 +160,21 @@ WHERE
 lower(megnevezes || becenev || gyarto || leiras || szin || megjegyzes || hely)
 LIKE "%{term.lower()}%"
 ORDER BY gyarto, megnevezes;""")
-    
+
     def mark_item(self, primary_key:int, color:str) -> None:
         with self:
             self.execute("""UPDATE raktar SET jeloles = ? WHERE cikkszam = ?""",
                         (color, primary_key))
+
+    def log_change(self,
+                   name:str,
+                   unitprice:float,
+                   unit:str,
+                   change:float,
+                   projectnumber:str) -> None:
+        with self:
+            self.execute("""
+INSERT INTO
+    raktar_naplo(megnevezes, egysegar, egyseg, valtozas, datum, projektszam)
+VALUES (?, ?, ?, ?, date(), ?)
+            """, (name, unitprice, unit, change, projectnumber))

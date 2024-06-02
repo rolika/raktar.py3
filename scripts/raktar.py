@@ -28,9 +28,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter.simpledialog import askstring
 from time import strftime  # időbélyeghez
-import sqlite3
 import os
-import re
 
 from databasesession import DatabaseSession
 from filesession import FileSession
@@ -717,28 +715,14 @@ class RaktarKeszlet(Frame):
             break
         filesession = FileSession(projectnumber)
         filesession.export(self.show_waybill())
-        datumbelyeg = strftime("%Y-%m-%d")
         for sor in self.szallitolevel:
-            self.kapcsolat.execute("""
-            INSERT INTO raktar_naplo(
-                megnevezes,
-                egysegar,
-                egyseg,
-                valtozas,
-                datum,
-                projektszam)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, (sor["megnevezes"],
-                  sor["egysegar"],
-                  sor["egyseg"],
-                  sor["valtozas"],
-                  datumbelyeg,
-                  str(projectnumber)))
-            self.kapcsolat.execute("""
-            UPDATE raktar
-            SET keszlet = ?, utolso_modositas = ? WHERE cikkszam = ?
-            """, (float(sor["keszlet"]), datumbelyeg, sor["cikkszam"]))
-        self.kapcsolat.commit()
+            self.databasesession.log_change(sor["megnevezes"],
+                                            sor["egysegar"],
+                                            sor["egyseg"],
+                                            sor["valtozas"],
+                                            str(projectnumber))
+            self.databasesession.set_stock_quantity(sor["cikkszam"],
+                                                    float(sor["keszlet"]))
         self.szallitolevel.clear()
         messagebox.showinfo(title=str(projectnumber),
                             message="Szállítólevél exportálva.")
@@ -752,5 +736,3 @@ def foProgram():
 
 if __name__ == "__main__":
     foProgram()
-
-
