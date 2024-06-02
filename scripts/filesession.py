@@ -41,15 +41,18 @@ class FileSession:
 
     def export(self, content:str) -> None:
         if self._projectnumber:
-            filename = "{}_{}.{}".format(self._projectnumber,
-                                         self._count_waybills() + 1,
-                                         self._extension)
+            waybill_number = "{}_{}".format(self._projectnumber,
+                                            self._count_waybills() + 1,)
+            filename = "{}.{}".format(waybill_number, self._extension)
         else:
             d = date.today()
             filename = "{}_{}.{}".format(self._stockname,
                                          d.strftime("%Y%m%d"),
                                          self._extension)
         with open(self._exportfolder / filename, "w") as f:
+            if self._projectnumber:
+                f.write("{:>79}".format("Szállítólevél száma: {}\n"\
+                                        .format(waybill_number)))
             f.write(content)
 
     def _get_folder(self) -> pathlib.Path:
@@ -64,9 +67,10 @@ class FileSession:
                 foldernumber = Projectnumber(folder.name)
                 if foldernumber == self._projectnumber:
                     path = folder / year / month
+                    self._projectfolder = folder
                     break
         os.makedirs(path, exist_ok=True)
         return path
-    
+
     def _count_waybills(self) -> int:
         return sum([len(files) for r, d, files in os.walk(self._projectfolder)])
