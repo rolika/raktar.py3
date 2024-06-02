@@ -54,7 +54,7 @@ class DatabaseSession(sqlite3.Connection):
     def set_stock_quantity(self, primary_key:int, quantity:float) -> None:
         with self:
             self.execute("""UPDATE raktar
-                            SET keszlet = ?, utolso_modositas = (SELECT date())
+                            SET keszlet = ?, utolso_modositas = date()
                             WHERE cikkszam = ?;""", (quantity, primary_key))
 
     def update_item(self,
@@ -86,7 +86,7 @@ class DatabaseSession(sqlite3.Connection):
                     hely = ?,
                     lejarat = ?,
                     gyartasido = ?,
-                    utolso_modositas = (SELECT date())
+                    utolso_modositas = date()
                 WHERE cikkszam = ?;
                 """, (name,
                       nickname,
@@ -134,7 +134,7 @@ class DatabaseSession(sqlite3.Connection):
                                    letrehozas,
                                    utolso_modositas)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                        (SELECT date()), (SELECT date()))
+                        date(), date())
                 """, (stock,
                       name,
                       nickname,
