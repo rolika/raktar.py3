@@ -382,7 +382,6 @@ class RaktarKeszlet(Frame):
     def adatbazisInicializalasa(self):
         self.kapcsolat = DatabaseSession(DATABASE)
         self.databasesession = DatabaseSession(DATABASE)
-        self.kurzor = self.kapcsolat.cursor()
         self.teljesListaKeszitese()
 
     def kilepesKivalasztasbol(self, _):
