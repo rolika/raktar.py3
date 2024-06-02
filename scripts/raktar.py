@@ -655,19 +655,12 @@ class RaktarKeszlet(Frame):
     def megjelol(self):
         valasztas = self.listbox.curselection()
         hatterszin = self.listbox.itemcget(valasztas[0], "background")
+        cikkszam = self.cikkszamok[valasztas[0]]
+        szin = JELOLOSZIN[0] + " " + JELOLOSZIN[1]
         if hatterszin in JELOLOSZIN:
-            self.kurzor.execute("""
-            UPDATE raktar
-            SET jeloles = ?
-            WHERE cikkszam = ?
-            """, ("", self.cikkszamok[valasztas[0]]))
-        else:
-            self.kurzor.execute("""
-            UPDATE raktar SET jeloles = ? WHERE cikkszam = ?
-            """, (JELOLOSZIN[0] + " " + JELOLOSZIN[1],
-                  self.cikkszamok[valasztas[0]]))
-        self.kapcsolat.commit()
-        self.tetelKijelzese(self.cikkszamok[valasztas[0]])
+            szin = ""
+        self.databasesession.mark_item(cikkszam, szin)
+        self.tetelKijelzese(cikkszam)
 
     def show_stock(self) -> str:
         result = ""
