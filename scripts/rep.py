@@ -2,6 +2,7 @@ from datetime import date
 import sqlite3
 from typing import Iterable
 
+from databasesession import DatabaseSession
 from szam_megjelenites import *
 
 
@@ -29,16 +30,11 @@ class Rep:
             .format(*(szo.capitalize() for szo in kwargs.keys()))
         return fejlec + "\n" + Rep.vonal()
 
-    def stock2str(cursor:sqlite3.Cursor, articles:Iterable[int]) -> str:
+    def stock2str(session:DatabaseSession, articles:Iterable[int]) -> str:
         """Build a string of the presented articles to show the stock."""
         result = ""
         for i, article in enumerate(articles):
-            cursor.execute("""
-            SELECT megnevezes, keszlet, egyseg, egysegar
-            FROM raktar
-            WHERE cikkszam = {};
-            """.format(article))
-            record = cursor.fetchone()
+            record = session.select_item(article).fetchone()
             if record["keszlet"]:
                 result += "{:>6}  {:<28} {:>8} {:<3} {:>9} Ft/{:<4}{:>10} Ft\n"\
                         .format(format(i + 1, "0=5"),
@@ -80,7 +76,7 @@ class Rep:
         result += "                 Hartmann Zoltán\n"
         return result
 
-    def show_stock(cursor:sqlite3.Cursor,
+    def show_stock(session:DatabaseSession,
                    articles:Iterable[int],
                    value:float) -> str:
         d = date.today()
@@ -91,7 +87,7 @@ class Rep:
                              készlet=14,
                              egységár=16,
                              érték=9)
-        result += Rep.stock2str(cursor, articles)
+        result += Rep.stock2str(session, articles)
         result += Rep.vonal()
         result += "Kiválasztás értéke összesen:                            \
          {:>12} Ft\n".format(ezresv(value))

@@ -661,12 +661,12 @@ class RaktarKeszlet(Frame):
 
     def raktarKijelzese(self):
         print(Rep.show_stock(
-            self.kurzor, self.cikkszamok, self.kivalasztasErteke()))
+            self.databasesession, self.cikkszamok, self.kivalasztasErteke()))
 
     def raktarExport(self) -> None:
         filesession = FileSession()
         filesession.export(Rep.show_stock(
-            self.kurzor, self.cikkszamok, self.kivalasztasErteke()))
+            self.databasesession, self.cikkszamok, self.kivalasztasErteke()))
         messagebox.showinfo(message="Raktárkészlet exportálva.")
 
     def szallitoLevelKijelzese(self):
