@@ -380,7 +380,6 @@ class RaktarKeszlet(Frame):
                     .grid(row=1, column=0, padx=PADX, pady=PADY)
 
     def adatbazisInicializalasa(self):
-        self.kapcsolat = DatabaseSession(DATABASE)
         self.databasesession = DatabaseSession(DATABASE)
         self.teljesListaKeszitese()
 
@@ -622,7 +621,6 @@ class RaktarKeszlet(Frame):
             self.hatra.config(state=NORMAL)  # első indításnál bekapcsol
             self.elore.config(state=NORMAL)
             self.frm_lista.grid(row=0, column=3, rowspan=5, sticky=NW)
-            self.kapcsolat.commit()
             self.teljesListaKeszitese()
             self.listaKijelzese()
             # utolsó mentett elem előkerítése
