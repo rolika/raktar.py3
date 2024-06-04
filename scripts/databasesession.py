@@ -1,6 +1,8 @@
 import pathlib
 import sqlite3
 
+LOG_COLUMNS = "megnevezes, egysegar, egyseg, valtozas, datum, projektszam"
+
 
 class DatabaseSession(sqlite3.Connection):
     """This class handles all database-related stuff."""
@@ -178,3 +180,32 @@ INSERT INTO
     raktar_naplo(megnevezes, egysegar, egyseg, valtozas, datum, projektszam)
 VALUES (?, ?, ?, ?, date(), ?)
             """, (name, unitprice, unit, change, projectnumber))
+
+    def query_log(self, projectnumber:str, month:str) -> sqlite3.Cursor:
+        """Query items belonging to projectnumber and inserted in month.
+        Both arguments should be verified for proper formatting before calling:
+        projectnumber:  yy_nnn
+        month:          yyyy-mm"""
+        return self.execute(f"""
+            SELECT {LOG_COLUMNS}
+            FROM raktar_naplo
+            WHERE projektszam = ?
+            AND strftime('%Y-%m', datum) = ?;
+        """, (projectnumber, month))
+
+    def query_months(self) -> sqlite3.Cursor:
+        """Query distinct months in descending order."""
+        return self.execute("""
+            SELECT DISTINCT strftime('%Y-%m', datum)
+            FROM raktar_naplo
+            ORDER BY datum DESC;
+        """)
+
+    def query_projects(self, month="2023-04") -> sqlite3.Cursor:
+        """Query distinct projectnumbers in ascending order."""
+        return self.execute("""
+            SELECT DISTINCT projektszam
+            FROM raktar_naplo
+            WHERE strftime("%Y-%m", datum) = ?
+            ORDER BY projektszam ASC;
+        """, (month, ))
