@@ -17,7 +17,7 @@ class LogBook():
 
     def __str__(self) -> str:
         projectnumber = self._records[0].projectnumber
-        return f"{projectnumber}: {self.total:>15} Ft"
+        return f"{projectnumber.legal}: {self.total:>15} Ft"
 
     @property
     def records(self) -> list[lr.LogRecord]:

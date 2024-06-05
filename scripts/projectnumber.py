@@ -35,14 +35,15 @@ class Projectnumber():
         assert bool(self)
         return "{}_{:0>3}".format(self.year, self.serial)
     
-    def __repr__(self) -> str:
-        """This is the human readable legal form."""
-        assert bool(self)
-        return "{}/{}".format(self.year, self.serial)
-    
     def __eq__(self, other:object) -> bool:
         """Two projectnumbers are equal if both year and serial are equal."""
         return (self.year == other.year) and (self.serial == other.serial)
+    
+    @property
+    def legal(self) -> str:
+        """This is the human readable legal form."""
+        assert bool(self)
+        return "{}/{}".format(self.year, self.serial)
 
 
 if __name__ == "__main__":

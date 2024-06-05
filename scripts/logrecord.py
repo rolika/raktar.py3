@@ -1,6 +1,9 @@
 from collections import namedtuple
 
 
+from projectnumber import Projectnumber
+
+
 class LogRecord():
     """Handles a single row in the logbook."""
     def __init__(self, record:namedtuple) -> None:
@@ -8,7 +11,7 @@ class LogRecord():
         self._unitprice = round(float(record.egysegar))
         self._unit = record.egyseg[:4]
         self._change = round(float(record.valtozas))
-        self._projectnumber = record.projektszam
+        self._projectnumber = Projectnumber(record.projektszam)
         self._value = self._unitprice * self._change
 
 
@@ -29,5 +32,5 @@ class LogRecord():
         return abs(self._change)
 
     @property
-    def projectnumber(self) -> str:
+    def projectnumber(self) -> Projectnumber:
         return self._projectnumber
