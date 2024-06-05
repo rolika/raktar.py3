@@ -1,3 +1,7 @@
+import locale
+locale.setlocale(locale.LC_ALL, "")
+
+from datetime import date
 import databasesession as dbs, logbook as lb, climenu as clm
 
 
@@ -19,11 +23,13 @@ class App():
             print(clm.line())
 
     def _choose_month(self) -> str:
-        months = [month[0] for month in self._dbs.query_months()]
-        month_menu = clm.CliMenu(months, title="Válassz hónapot!")
+        months_as_text = [date.fromisoformat(month[0]+"-01").strftime("%Y. %B")\
+                          for month in self._dbs.query_months()]
+        months_iso = [month[0] for month in self._dbs.query_months()]
+        month_menu = clm.CliMenu(months_as_text, title="Válassz hónapot!")
         month_menu.show()
         choice = month_menu.listen()
-        return months[choice]
+        return months_iso[choice]
 
     def _choose_project(self, month:str) -> str:
         logbooks = [lb.LogBook(self._dbs.query_log(project[0], month))\
