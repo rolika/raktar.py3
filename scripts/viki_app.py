@@ -1,8 +1,9 @@
 import locale
 locale.setlocale(locale.LC_ALL, "")
 
-from datetime import date
 import databasesession as dbs, logbook as lb, climenu as clm
+from datetime import date
+from rep import Rep
 
 
 class App():
@@ -10,17 +11,17 @@ class App():
         self._dbs = dbs.DatabaseSession(db)
 
     def run(self) -> None:
-        print(clm.headline("utókalkulátor"))
+        print(Rep.headline("utókalkulátor"))
         while True:
             month = self._choose_month()
             logbook = self._choose_project(month)
-            print(clm.line())
-            print(clm.header(megnevezés=30, változás=12, egységár=19, érték=1))
+            print(Rep.line())
+            print(Rep.header(megnevezés=30, változás=12, egységár=19, érték=1))
             for record in logbook.records:
                 print(record)
-            print(clm.line())
+            print(Rep.line())
             print("{:>51} {:>14} Ft".format("Összesen:", logbook.total))
-            print(clm.line())
+            print(Rep.line())
 
     def _choose_month(self) -> str:
         months_as_text = [date.fromisoformat(month[0]+"-01").strftime("%Y. %B")\
