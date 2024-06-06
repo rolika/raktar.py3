@@ -2,6 +2,10 @@ import re
 
 
 PROJECTNUMBER_PATTERN = r"(?P<year>\d{2})[/ _-](?P<serial>\d{1,3})"
+MIN_YEAR = 0
+MAX_YEAR = 99
+MIN_SERIAL = 0
+MAX_SERIAL = 999
 
 
 class Projectnumber():
@@ -28,21 +32,23 @@ class Projectnumber():
     
     def __bool__(self) -> bool:
         """Return true if this is a valid projectnumber."""
-        return bool(self.year) and bool(self.serial)
+        return (MIN_YEAR <= self.year <= MAX_YEAR) and\
+               (MIN_SERIAL <= self.serial <= MAX_SERIAL)
     
     def __str__(self) -> str:
         """Projectnumber as a string is the filename-format."""
         assert bool(self)
         return "{}_{:0>3}".format(self.year, self.serial)
     
-    def __repr__(self) -> str:
-        """This is the human readable legal form."""
-        assert bool(self)
-        return "{}/{}".format(self.year, self.serial)
-    
     def __eq__(self, other:object) -> bool:
         """Two projectnumbers are equal if both year and serial are equal."""
         return (self.year == other.year) and (self.serial == other.serial)
+    
+    @property
+    def legal(self) -> str:
+        """This is the human readable legal form."""
+        assert bool(self)
+        return "{}/{}".format(self.year, self.serial)
 
 
 if __name__ == "__main__":

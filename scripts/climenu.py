@@ -1,23 +1,6 @@
 from typing import Iterable
 
 
-def line(char:str="_", length:int=80) -> str:
-    return "".join(char for _ in range(length))
-
-
-def headline(text:str) -> str:
-    head = " ".join(char.upper() for char in text)
-    return f"{line()}\n{head:^80}\n{line()}"
-
-
-def header(fillchar:str="", **kwargs:dict[str,int]) -> str:
-    fmtspec = ("{:" + fillchar + "<" + str(kwargs[word]) + "}" \
-                for word in kwargs)
-    header = "".join(fmtspec)\
-        .format(*(word.capitalize() for word in kwargs.keys()))
-    return f"{header}\n{line()}"
-
-
 class CliMenu():
     """Create and handle a simple command line menu."""
     def __init__(self,

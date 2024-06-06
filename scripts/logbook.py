@@ -3,21 +3,21 @@ from functools import reduce
 from operator import attrgetter
 from sqlite3 import Cursor
 
-import dbsession as dbs
+import databasesession as dbs
 import logrecord as lr
 
 
 class LogBook():
     """The logbook represents an ordered list of log records."""
     def __init__(self, query:Cursor) -> None:
-        logrecord = namedtuple("logrecord", dbs.DBSession.LOG_COLUMNS)
-        records = map(logrecord._make, query.fetchall())
+        logrecord = namedtuple("logrecord", dbs.LOG_COLUMNS)
+        records = map(logrecord._make, query)
         self._records = [lr.LogRecord(record) for record in records]
         self._records.sort(key=attrgetter("value", "quantity"))
 
     def __str__(self) -> str:
         projectnumber = self._records[0].projectnumber
-        return f"{projectnumber}: {self.total:>15} Ft"
+        return f"{projectnumber.legal}: {self.total:>15} Ft"
 
     @property
     def records(self) -> list[lr.LogRecord]:

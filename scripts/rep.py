@@ -9,25 +9,21 @@ class Rep:
     """A reprezentációs osztály a terminálon kijelzésekhez és a fileexportokhoz
     biztosít vonalat, címsort, fejlécet."""
 
-    def vonal(karakter:str="_", hossz:int=80) -> str:
-        """Megadott hosszúságú vonal rajzolása."""
-        return "".join(karakter for _ in range(hossz)) + "\n"
+    def line(char:str="_", length:int=80) -> str:
+        return "".join(char for _ in range(length))
 
-    def cimsor(szoveg:str) -> str:
-        """A címsor csupa nagybetű, a betű között szóközzel, középre igazított,
-        alul-felül átmenő vonallal."""
-        cim = " ".join(betu.upper() for betu in szoveg)
-        return "{}{:^80}{}{}".format(Rep.vonal(), cim, "\n", Rep.vonal())
 
-    def fejlec(karakter:str="", **kwargs:dict[str,int]) -> str:
-        """A fejléc csupa balra igazított, nagybetűvel kezdődő szavakból áll,
-        melyek egymástól meghatározott távolságra vannak és karakter köti össze
-        őket, aláhúzva egy folytonos vonallal."""
-        formatspec = ("{:" + karakter + "<" + str(kwargs[szo]) + "}" \
-                      for szo in kwargs)
-        fejlec = "".join(formatspec)\
-            .format(*(szo.capitalize() for szo in kwargs.keys()))
-        return fejlec + "\n" + Rep.vonal()
+    def headline(text:str) -> str:
+        head = " ".join(char.upper() for char in text)
+        return "{}{:^80}{}{}".format(Rep.line(), head, "\n", Rep.line())
+
+
+    def header(fillchar:str="", **kwargs:dict[str,int]) -> str:
+        fmtspec = ("{:" + fillchar + "<" + str(kwargs[word]) + "}" \
+                    for word in kwargs)
+        header = "".join(fmtspec)\
+            .format(*(word.capitalize() for word in kwargs.keys()))
+        return f"{header}\n{Rep.line()}"
 
     def stock2str(session:DatabaseSession, articles:Iterable[int]) -> str:
         """Build a string of the presented articles to show the stock."""
@@ -80,27 +76,27 @@ class Rep:
                    value:float) -> str:
         d = date.today()
         result = ""
-        result += Rep.cimsor("raktárkészlet")
-        result += Rep.fejlec(sorszám=8,
+        result += Rep.headline("raktárkészlet")
+        result += Rep.header(sorszám=8,
                              megnevezés=33,
                              készlet=14,
                              egységár=16,
                              érték=9)
         result += Rep.stock2str(session, articles)
-        result += Rep.vonal()
+        result += Rep.line()
         result += "Kiválasztás értéke összesen:                            \
          {:>12} Ft\n".format(ezresv(value))
-        result += Rep.vonal()
+        result += Rep.line()
         result += "{}-i állapot.\n".format(d.strftime("%Y.%m.%d"))
         return result
 
     def show_waybill(waybill:list,
                      organization:tuple[str],
                      customer:tuple[str]) -> str:
-        result = Rep.cimsor("szállítólevél")
+        result = Rep.headline("szállítólevél")
         result += Rep.waybill_header(organization, customer)
-        result += Rep.fejlec(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
+        result += Rep.header(sorszám=9, megnevezés=54, mennyiség=10, egység=7)
         result += Rep.waybill2str(waybill)
-        result += Rep.vonal()
+        result += Rep.line()
         result += Rep.waybill_footer()
         return result
