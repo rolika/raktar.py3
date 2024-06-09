@@ -89,15 +89,15 @@ class ItemMask(LabelFrame):
     
     def get_mask(self) -> ItemRecord:
         return ItemRecord(
-            self.name_var.get(),
-            self.nickname_var.get(),
-            self.manufacturer_var.get(),
-            self.description_var.get(),
-            self.color_var.get(),
-            self.comment_var.get(),
-            self.unit_var.get(),
-            self.packaging_var.get(),
-            self.shelflife_var.get()
+            name=self.name_var.get(),
+            nickname=self.nickname_var.get(),
+            manufactuere=self.manufacturer_var.get(),
+            descriptioin=self.description_var.get(),
+            color=self.color_var.get(),
+            comment=self.comment_var.get(),
+            unit=self.unit_var.get(),
+            packaging=self.packaging_var.get(),
+            shelflife=self.shelflife_var.get()
         )
 
     def set_mask(self, item:ItemRecord):
