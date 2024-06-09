@@ -5,6 +5,7 @@ from itemrecord import ItemRecord
 
 
 SHORT_FIELD = 8
+MID_FIELD = 16
 PADX = 3
 PADY = 3
 DEFAULT_SHELFLIFE = 12
@@ -29,42 +30,42 @@ class ItemMask(LabelFrame):
         self.shelflife_var = IntVar()
 
     def _build_interface(self) -> None:
-        Label(self, text="Megnevezés:", anchor=W)\
+        Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var)
         name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
                         columnspan=6)
         name_entry.focus()
 
-        Label(self, text="Gyártó:", anchor=W)\
+        Label(self, text="Gyártó:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.manufacturer_var)\
             .grid(row=1, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=3)
-        Label(self, text="Becenév:", anchor=E)\
+        Label(self, text="Becenév:")\
             .grid(row=1, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.nickname_var)\
             .grid(row=1, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
-        Label(self, text="Leírás:", anchor=W)\
+        Label(self, text="Leírás:")\
             .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.description_var)\
             .grid(row=2, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=6)
 
-        Label(self, text="Megjegyzés:", anchor=W)\
+        Label(self, text="Megjegyzés:")\
             .grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.comment_var)\
             .grid(row=3, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=3)
-        Label(self, text="Szín:", anchor=E)\
+        Label(self, text="Szín:")\
             .grid(row=3, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.color_var)\
             .grid(row=3, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
-        Label(self, text="Kiszerelés:", anchor=W)\
+        Label(self, text="Kiszerelés:")\
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
                   textvariable=self.packaging_var)\
@@ -72,21 +73,17 @@ class ItemMask(LabelFrame):
         ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
                   textvariable=self.unit_var)\
             .grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
-        Label(self, text="egység", anchor=E)\
+        Label(self, text="egység")\
             .grid(row=4, column=3, sticky=E, padx=PADX, pady=PADY)
-        Label(self, text="Eltartható:", anchor=E)\
+        Label(self, text="Eltartható:")\
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
-        ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
+        ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
                   textvariable=self.shelflife_var)\
             .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
-        Label(self, text="hónap", anchor=W)\
-            .grid(row=4, column=6, sticky=W, padx=PADX, pady=PADY)
+        Label(self, text="hónap")\
+            .grid(row=4, column=6, padx=PADX, pady=PADY)
         self.shelflife_var.set(DEFAULT_SHELFLIFE)
 
-    def _get_controll_variables(self) -> list[StringVar|DoubleVar]:
-        return [getattr(self, attr) for attr in dir(self)\
-                if attr.endswith("_var")]
-    
     def get_mask(self) -> ItemRecord:
         return ItemRecord(
             name=self.name_var.get(),
@@ -100,7 +97,7 @@ class ItemMask(LabelFrame):
             shelflife=self.shelflife_var.get()
         )
 
-    def set_mask(self, item:ItemRecord):
+    def set_mask(self, item:ItemRecord) -> None:
         self.name_var.set(item.name)
         self.nickname_var.set(item.nickname)
         self.manufacturer_var.set(item.manufacturer)
@@ -111,6 +108,19 @@ class ItemMask(LabelFrame):
         self.packaging_var.set(item.packaging)
         self.shelflife_var.set(item.shelflife)
 
+    def disable(self) -> None:
+        for child in self.winfo_children():
+            if type(child) is ttk.Entry:
+                child["state"] = DISABLED
+
+    def enable(self) -> None:
+        for child in self.winfo_children():
+            if type(child) is ttk.Entry:
+                child["state"] = NORMAL
+
 
 if __name__ == "__main__":
-    ItemMask().mainloop()
+    mask = ItemMask()
+    mask.disable()
+    mask.enable()
+    mask.mainloop()
