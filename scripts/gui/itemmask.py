@@ -2,11 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 
-LONG_FIELD = 42
-MID_FIELD = 16
 SHORT_FIELD = 8
-TINY_FIELD = 3
-BUTTON_WIDTH = 8
 PADX = 3
 PADY = 3
 
@@ -25,46 +21,44 @@ class ItemMask(LabelFrame):
         self.description_var = StringVar()
         self.color_var = StringVar()
         self.comment_var = StringVar()
-        self.place_var = StringVar()
         self.unit_var = StringVar()
-        self.unitprice_var = DoubleVar()
         self.packaging_var = DoubleVar()
-        self.productiondate_var = StringVar()
         self.shelflife_var = IntVar()
 
     def _build_interface(self) -> None:
         Label(self, text="Megnevezés:", anchor=W)\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=LEFT, textvariable=self.name_var)\
-            .grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
-                  columnspan=7)
+        name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var)
+        name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
+                        columnspan=6)
+        name_entry.focus()
 
         Label(self, text="Gyártó:", anchor=W)\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.manufacturer_var)\
             .grid(row=1, column=1, sticky=E+W, padx=PADX, pady=PADY,
-                  columnspan=4)
+                  columnspan=3)
         Label(self, text="Becenév:", anchor=E)\
-            .grid(row=1, column=5, sticky=E, padx=PADX, pady=PADY)
+            .grid(row=1, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.nickname_var)\
-            .grid(row=1, column=6, sticky=E+W, padx=PADX, pady=PADY, 
+            .grid(row=1, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
         Label(self, text="Leírás:", anchor=W)\
             .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.description_var)\
             .grid(row=2, column=1, sticky=E+W, padx=PADX, pady=PADY,
-                  columnspan=7)
+                  columnspan=6)
 
         Label(self, text="Megjegyzés:", anchor=W)\
             .grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.comment_var)\
-            .grid(row=3, column=1, sticky=E+W, padx=PADX, pady=PADY, 
-                  columnspan=4)
+            .grid(row=3, column=1, sticky=E+W, padx=PADX, pady=PADY,
+                  columnspan=3)
         Label(self, text="Szín:", anchor=E)\
-            .grid(row=3, column=5, sticky=E, padx=PADX, pady=PADY)
+            .grid(row=3, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.color_var)\
-            .grid(row=3, column=6, sticky=E+W, padx=PADX, pady=PADY, 
+            .grid(row=3, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
         Label(self, text="Kiszerelés:", anchor=W)\
@@ -77,6 +71,15 @@ class ItemMask(LabelFrame):
             .grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="egység", anchor=E)\
             .grid(row=4, column=3, sticky=E, padx=PADX, pady=PADY)
+        Label(self, text="Eltartható:", anchor=E)\
+            .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
+        ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
+                  textvariable=self.shelflife_var)\
+            .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
+        Label(self, text="hónap", anchor=W)\
+            .grid(row=4, column=6, sticky=W, padx=PADX, pady=PADY)
+        self.shelflife_var.set(12)
+
 
 
 if __name__ == "__main__":
