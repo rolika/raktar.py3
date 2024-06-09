@@ -1,0 +1,2 @@
+class ItemRecord():
+    pass

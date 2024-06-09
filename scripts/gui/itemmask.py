@@ -1,10 +1,13 @@
 from tkinter import *
 from tkinter import ttk
 
+from itemrecord import ItemRecord
+
 
 SHORT_FIELD = 8
 PADX = 3
 PADY = 3
+DEFAULT_SHELFLIFE = 12
 
 
 class ItemMask(LabelFrame):
@@ -78,8 +81,35 @@ class ItemMask(LabelFrame):
             .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="hónap", anchor=W)\
             .grid(row=4, column=6, sticky=W, padx=PADX, pady=PADY)
-        self.shelflife_var.set(12)
+        self.shelflife_var.set(DEFAULT_SHELFLIFE)
 
+    def _get_controll_variables(self) -> list[StringVar|DoubleVar]:
+        return [getattr(self, attr) for attr in dir(self)\
+                if attr.endswith("_var")]
+    
+    def get_mask(self) -> ItemRecord:
+        return ItemRecord(
+            self.name_var.get(),
+            self.nickname_var.get(),
+            self.manufacturer_var.get(),
+            self.description_var.get(),
+            self.color_var.get(),
+            self.comment_var.get(),
+            self.unit_var.get(),
+            self.packaging_var.get(),
+            self.shelflife_var.get()
+        )
+
+    def set_mask(self, item:ItemRecord):
+        self.name_var.set(item.name)
+        self.nickname_var.set(item.nickname)
+        self.manufacturer_var.set(item.manufacturer)
+        self.description_var.set(item.description)
+        self.color_var.set(item.color)
+        self.comment_var.set(item.comment)
+        self.unit_var.set(item.unit)
+        self.packaging_var.set(item.packaging)
+        self.shelflife_var.set(item.shelflife)
 
 
 if __name__ == "__main__":
