@@ -72,7 +72,7 @@ class ItemMask(LabelFrame):
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
         self.packaging_entry = ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
                   textvariable=self.packaging_var,
-                  validate="all", validatecommand=(is_packaging))
+                  validate="all", validatecommand=(is_packaging, "%P"))
         self.packaging_entry.grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
                   textvariable=self.unit_var)\
@@ -83,7 +83,7 @@ class ItemMask(LabelFrame):
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
                   textvariable=self.shelflife_var,
-                  validate="all", validatecommand=(is_month))\
+                  validate="all", validatecommand=(is_month, "%P"))\
             .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
@@ -124,19 +124,19 @@ class ItemMask(LabelFrame):
             if type(child) is ttk.Entry:
                 child["state"] = NORMAL
     
-    def _is_packaging(self) -> bool:
+    def _is_packaging(self, text=str) -> bool:
         style = ttk.Style()
         style.configure("okstyle.TEntry", fieldbackground="white")
         style.configure("errorstyle.TEntry", fieldbackground="red")
         try:
-            number = float(self.packaging_var.get())
+            number = float(text)
             if number >= 0:
                 self.packaging_entry["style"] = "okstyle.TEntry"
         except ValueError:            
             self.packaging_entry["style"] = "errorstyle.TEntry"
         return True
     
-    def _is_month(self) -> bool:
+    def _is_month(self, text:str) -> bool:
         return True
 
 
