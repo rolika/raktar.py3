@@ -31,8 +31,7 @@ class ItemMask(LabelFrame):
         self.shelflife_var = StringVar()
 
     def _build_interface(self) -> None:
-        is_packaging = self.register(self._is_packaging)
-        is_month = self.register(self._is_month)
+        is_number = self.register(self._is_number)
         Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var)
@@ -70,10 +69,10 @@ class ItemMask(LabelFrame):
 
         Label(self, text="Kiszerelés:")\
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
-        self.packaging_entry = ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
-                  textvariable=self.packaging_var,
-                  validate="all", validatecommand=(is_packaging, "%P"))
-        self.packaging_entry.grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
+        ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
+                  textvariable=self.packaging_var, name="packaging",
+                  validate="all", validatecommand=(is_number, "%P", "%W"))\
+                    .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
                   textvariable=self.unit_var)\
             .grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
@@ -82,8 +81,8 @@ class ItemMask(LabelFrame):
         Label(self, text="Eltartható:")\
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
-                  textvariable=self.shelflife_var,
-                  validate="all", validatecommand=(is_month, "%P"))\
+                  textvariable=self.shelflife_var, name="shelflife",
+                  validate="all", validatecommand=(is_number, "%P", "%W"))\
             .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
@@ -124,19 +123,17 @@ class ItemMask(LabelFrame):
             if type(child) is ttk.Entry:
                 child["state"] = NORMAL
     
-    def _is_packaging(self, text=str) -> bool:
+    def _is_number(self, text:str, name:str) -> bool:
         style = ttk.Style()
         style.configure("okstyle.TEntry", fieldbackground="white")
         style.configure("errorstyle.TEntry", fieldbackground="red")
+        widget = self.nametowidget(name)
         try:
             number = float(text)
             if number >= 0:
-                self.packaging_entry["style"] = "okstyle.TEntry"
+                widget["style"] = "okstyle.TEntry"
         except ValueError:            
-            self.packaging_entry["style"] = "errorstyle.TEntry"
-        return True
-    
-    def _is_month(self, text:str) -> bool:
+            widget["style"] = "errorstyle.TEntry"
         return True
 
 
