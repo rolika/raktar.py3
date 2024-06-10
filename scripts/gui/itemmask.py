@@ -11,6 +11,10 @@ PADY = 3
 DEFAULT_PACKAGING = 0
 DEFAULT_SHELFLIFE = 12
 
+style = ttk.Style()
+style.configure("okstyle.TEntry", fieldbackground="white")
+style.configure("errorstyle.TEntry", fieldbackground="red")
+
 
 class ItemMask(LabelFrame):
     def __init__(self):
@@ -32,18 +36,25 @@ class ItemMask(LabelFrame):
 
     def _build_interface(self) -> None:
         is_number = self.register(self._is_number)
+        is_empty = self.register(self._is_empty)
         Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
-        name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var)
+        name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var,
+                               name="name", validate="all",
+                               validatecommand=(is_empty, "%P", "%W"))
         name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
                         columnspan=6)
         name_entry.focus()
 
         Label(self, text="Gyártó:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=LEFT, textvariable=self.manufacturer_var)\
-            .grid(row=1, column=1, sticky=E+W, padx=PADX, pady=PADY,
-                  columnspan=3)
+        manufacturer_entry = ttk.Entry(self, justify=LEFT,
+                                       textvariable=self.manufacturer_var, name="manufacturer",
+                                       validate="all",
+                                       validatecommand=(is_empty, "%P", "%W"))
+        manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
+                                pady=PADY, columnspan=3)
+        manufacturer_entry["style"] = "errorstyle.TEntry"
         Label(self, text="Becenév:")\
             .grid(row=1, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.nickname_var)\
@@ -73,9 +84,12 @@ class ItemMask(LabelFrame):
                   textvariable=self.packaging_var, name="packaging",
                   validate="all", validatecommand=(is_number, "%P", "%W"))\
                     .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
-                  textvariable=self.unit_var)\
-            .grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
+        unit_entry = ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
+                               textvariable=self.unit_var, name="unit",
+                               validate="all",
+                               validatecommand=(is_empty, "%P", "%W"))
+        unit_entry.grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
+        unit_entry["style"] = "errorstyle.TEntry"
         Label(self, text="egység")\
             .grid(row=4, column=3, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="Eltartható:")\
@@ -122,17 +136,22 @@ class ItemMask(LabelFrame):
         for child in self.winfo_children():
             if type(child) is ttk.Entry:
                 child["state"] = NORMAL
-    
+
     def _is_number(self, text:str, name:str) -> bool:
-        style = ttk.Style()
-        style.configure("okstyle.TEntry", fieldbackground="white")
-        style.configure("errorstyle.TEntry", fieldbackground="red")
         widget = self.nametowidget(name)
         try:
             number = float(text)
             if number >= 0:
                 widget["style"] = "okstyle.TEntry"
-        except ValueError:            
+        except ValueError:
+            widget["style"] = "errorstyle.TEntry"
+        return True
+
+    def _is_empty(self, text:str, name:str) -> bool:
+        widget = self.nametowidget(name)
+        if text:
+            widget["style"] = "okstyle.TEntry"
+        else:
             widget["style"] = "errorstyle.TEntry"
         return True
 
