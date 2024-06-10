@@ -103,12 +103,12 @@ class ItemMask(LabelFrame):
         self.packaging_var.set(DEFAULT_PACKAGING)
         self.shelflife_var.set(DEFAULT_SHELFLIFE)
 
-    def get_mask(self) -> ItemRecord:
+    def retrieve(self) -> ItemRecord:
         return ItemRecord(
             name=self.name_var.get(),
             nickname=self.nickname_var.get(),
-            manufactuere=self.manufacturer_var.get(),
-            descriptioin=self.description_var.get(),
+            manufacturer=self.manufacturer_var.get(),
+            description=self.description_var.get(),
             color=self.color_var.get(),
             comment=self.comment_var.get(),
             unit=self.unit_var.get(),
@@ -116,7 +116,7 @@ class ItemMask(LabelFrame):
             shelflife=self.shelflife_var.get()
         )
 
-    def set_mask(self, item:ItemRecord) -> None:
+    def populate(self, item:ItemRecord) -> None:
         self.name_var.set(item.name)
         self.nickname_var.set(item.nickname)
         self.manufacturer_var.set(item.manufacturer)
@@ -136,6 +136,9 @@ class ItemMask(LabelFrame):
         for child in self.winfo_children():
             if type(child) is ttk.Entry:
                 child["state"] = NORMAL
+
+    def is_valid(self) -> bool:
+        return bool(self.retrieve())
 
     def _is_number(self, text:str, name:str) -> bool:
         widget = self.nametowidget(name)
