@@ -83,7 +83,7 @@ class ItemMask(LabelFrame):
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
                   textvariable=self.shelflife_var,
-                  validate="key", validatecommand=(is_month))\
+                  validate="all", validatecommand=(is_month))\
             .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
@@ -128,17 +128,11 @@ class ItemMask(LabelFrame):
         style = ttk.Style()
         style.configure("okstyle.TEntry", fieldbackground="white")
         style.configure("errorstyle.TEntry", fieldbackground="red")
-        value = self.packaging_var.get()
-        if not value:
-            value = 0
-            self.packaging_var.set(value)
         try:
-            number = float(value)
-        except ValueError:
-            number = None
-        if number and number >= 0:
-            self.packaging_entry["style"] = "okstyle.TEntry"
-        else:
+            number = float(self.packaging_var.get())
+            if number >= 0:
+                self.packaging_entry["style"] = "okstyle.TEntry"
+        except ValueError:            
             self.packaging_entry["style"] = "errorstyle.TEntry"
         return True
     
