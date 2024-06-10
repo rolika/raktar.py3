@@ -8,6 +8,7 @@ SHORT_FIELD = 8
 MID_FIELD = 16
 PADX = 3
 PADY = 3
+DEFAULT_PACKAGING = 0
 DEFAULT_SHELFLIFE = 12
 
 
@@ -26,10 +27,12 @@ class ItemMask(LabelFrame):
         self.color_var = StringVar()
         self.comment_var = StringVar()
         self.unit_var = StringVar()
-        self.packaging_var = DoubleVar()
-        self.shelflife_var = IntVar()
+        self.packaging_var = StringVar()
+        self.shelflife_var = StringVar()
 
     def _build_interface(self) -> None:
+        is_packaging = self.register(self._is_packaging)
+        is_month = self.register(self._is_month)
         Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var)
@@ -67,9 +70,10 @@ class ItemMask(LabelFrame):
 
         Label(self, text="Kiszerelés:")\
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
-                  textvariable=self.packaging_var)\
-            .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
+        self.packaging_entry = ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
+                  textvariable=self.packaging_var,
+                  validate="all", validatecommand=(is_packaging))
+        self.packaging_entry.grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
                   textvariable=self.unit_var)\
             .grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
@@ -78,10 +82,12 @@ class ItemMask(LabelFrame):
         Label(self, text="Eltartható:")\
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
-                  textvariable=self.shelflife_var)\
+                  textvariable=self.shelflife_var,
+                  validate="key", validatecommand=(is_month))\
             .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
+        self.packaging_var.set(DEFAULT_PACKAGING)
         self.shelflife_var.set(DEFAULT_SHELFLIFE)
 
     def get_mask(self) -> ItemRecord:
@@ -117,6 +123,27 @@ class ItemMask(LabelFrame):
         for child in self.winfo_children():
             if type(child) is ttk.Entry:
                 child["state"] = NORMAL
+    
+    def _is_packaging(self) -> bool:
+        style = ttk.Style()
+        style.configure("okstyle.TEntry", fieldbackground="white")
+        style.configure("errorstyle.TEntry", fieldbackground="red")
+        value = self.packaging_var.get()
+        if not value:
+            value = 0
+            self.packaging_var.set(value)
+        try:
+            number = float(value)
+        except ValueError:
+            number = None
+        if number and number >= 0:
+            self.packaging_entry["style"] = "okstyle.TEntry"
+        else:
+            self.packaging_entry["style"] = "errorstyle.TEntry"
+        return True
+    
+    def _is_month(self) -> bool:
+        return True
 
 
 if __name__ == "__main__":
