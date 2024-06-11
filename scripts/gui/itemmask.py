@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
-from itemrecord import ItemRecord
+from scripts.itemrecord import ItemRecord
 
 
 SHORT_FIELD = 8
