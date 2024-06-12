@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 
-from projectnumber import Projectnumber
+from scripts.projectnumber import Projectnumber
 
 
 class LogRecord():

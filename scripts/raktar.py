@@ -15,11 +15,11 @@ from tkinter import messagebox
 from tkinter.simpledialog import askstring
 import os
 
-from databasesession import DatabaseSession
-from filesession import FileSession
-from projectnumber import Projectnumber
-from rep import Rep
-from szam_megjelenites import *
+from scripts.databasesession import DatabaseSession
+from scripts.filesession import FileSession
+from scripts.projectnumber import Projectnumber
+from scripts.rep import Rep
+from scripts.szam_megjelenites import *
 
 
 __version__ = "0.5.5"
