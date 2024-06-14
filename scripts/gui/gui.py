@@ -2,6 +2,7 @@ import os
 from tkinter import *
 
 from scripts.gui.itemmask import ItemMask
+from scripts.gui.stockitemmask import StockItemMask
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -27,6 +28,8 @@ class Gui(Frame):
     
     def _build_interface(self):
         itemmask = ItemMask()
+        stockitemmask = StockItemMask()
+        stockitemmask.unit_var.set("m2")
 
 
 if __name__ == "__main__":
