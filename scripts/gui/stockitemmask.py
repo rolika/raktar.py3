@@ -29,6 +29,7 @@ class StockItemMask(LabelFrame):
         self.unit_var = StringVar()
         self.productiondate_var = StringVar()
         self.stock_var = StringVar()
+        self.value_var = StringVar()
 
     def _build_interface(self) -> None:
         is_number = self.register(self._is_number)
@@ -67,8 +68,17 @@ class StockItemMask(LabelFrame):
         Label(self, text="(éééé-hh-nn)")\
             .grid(row=1, column=5, sticky=W, padx=PADX, pady=PADY,
                   columnspan=2)
+        
+        Label(self, text="Érték:")\
+            .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
+        Label(self, textvariable=self.value_var)\
+            .grid(row=2, column=1, sticky=E, padx=PADX, pady=PADY)
+        Label(self, text="Ft")\
+            .grid(row=2, column=2, sticky=W, padx=PADX, pady=PADY)
+        
         self.unitprice_var.set("0")
         self.stock_var.set("0")
+        self.value_var.set("0")
         self.productiondate_var.set(date.today().isoformat())
 
     def _is_number(self, text:str, name:str) -> bool:
@@ -89,6 +99,9 @@ class StockItemMask(LabelFrame):
         except ValueError:
             widget["style"] = "errorstyle.TEntry"
         return True
+    
+    def _compute_value(self) -> int:
+        pass
 
     def retrieve(self) -> StockItemRecord:
         return StockItemRecord(
