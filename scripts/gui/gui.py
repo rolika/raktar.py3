@@ -1,6 +1,7 @@
 import os
 from tkinter import *
 
+from scripts.gui.display import Display
 from scripts.gui.itemmask import ItemMask
 from scripts.gui.stockitemmask import StockItemMask
 
@@ -30,10 +31,10 @@ class Gui(Frame):
         self.itemmask = ItemMask()
         self.itemmask.bind_all("<KeyPress>", self._update_labels)
         self.stockitemmask = StockItemMask()
+        self.display = Display()
     
-    def _update_labels(self, event:Event):
-        unit = self.itemmask.unit_var.get()
-        self.stockitemmask.unit_var.set(unit)
+    def _update_labels(self, _:Event):
+        self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
 
 
 if __name__ == "__main__":
