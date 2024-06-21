@@ -27,9 +27,13 @@ class Gui(Frame):
         self._build_interface()
     
     def _build_interface(self):
-        itemmask = ItemMask()
-        stockitemmask = StockItemMask()
-        stockitemmask.unit_var.set("m2")
+        self.itemmask = ItemMask()
+        self.itemmask.bind_all("<KeyPress>", self._update_labels)
+        self.stockitemmask = StockItemMask()
+    
+    def _update_labels(self, event:Event):
+        unit = self.itemmask.unit_var.get()
+        self.stockitemmask.unit_var.set(unit)
 
 
 if __name__ == "__main__":
