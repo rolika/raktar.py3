@@ -18,7 +18,6 @@ class ItemMask(LabelFrame):
         super().__init__(text="Anyag")
         self._init_controll_variables()
         self._build_interface()
-        self.grid(padx=PADX, pady=PADY)
 
     def _init_controll_variables(self) -> None:
         self.name_var = StringVar()

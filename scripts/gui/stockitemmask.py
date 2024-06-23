@@ -18,7 +18,6 @@ class StockItemMask(LabelFrame):
         super().__init__(text="Raktári jellemzők")
         self._init_controll_variables()
         self._build_interface()
-        self.grid(padx=PADX, pady=PADY)
 
     def _init_controll_variables(self) -> None:
         self.place_var = StringVar()

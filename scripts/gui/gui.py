@@ -24,15 +24,18 @@ class Gui(Frame):
         else:
             self.master.iconbitmap(default = WINDOWS_ICON)
         self.master.title(PROGRAM + " v" + version)
-        self.grid(padx=PADX, pady=PADY)
         self._build_interface()
         self.bind_all("<KeyPress>", self._update_labels)
+        self.grid(padx=PADX, pady=PADY)
 
     def _build_interface(self):
-        self.itemmask = ItemMask()
-        self.stockitemmask = StockItemMask()
         self.displaymask = DisplayMask()
+        self.stockitemmask = StockItemMask()
+        self.itemmask = ItemMask()
         self.displaymask.update_(1, "", 8912234.35)
+        self.displaymask.grid(padx=PADX, pady=PADY, sticky=E+W)
+        self.itemmask.grid(padx=PADX, pady=PADY, sticky=E+W)
+        self.stockitemmask.grid(padx=PADX, pady=PADY, sticky=E+W)
 
     def _update_labels(self, _:Event):
         self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
