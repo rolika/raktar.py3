@@ -111,4 +111,4 @@ class StockItemMask(LabelFrame):
         self.unit_var.set(item.unit)
 
     def is_valid(self) -> bool:
-        return bool(self.retrieve())
+        return styles.is_entry_ok(self)

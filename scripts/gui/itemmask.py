@@ -135,7 +135,7 @@ class ItemMask(LabelFrame):
                 child["state"] = NORMAL
 
     def is_valid(self) -> bool:
-        return bool(self.retrieve())
+        return styles.is_entry_ok(self)
 
     def _is_number(self, text:str, name:str) -> bool:
         try:

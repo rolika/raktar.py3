@@ -1,6 +1,7 @@
 import os
 from tkinter import *
 
+from scripts.gui import styles
 from scripts.gui.display import Display
 from scripts.gui.itemmask import ItemMask
 from scripts.gui.stockitemmask import StockItemMask
@@ -36,6 +37,7 @@ class Gui(Frame):
     def _update_labels(self, _:Event):
         self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
         self.stockitemmask.value_var.set(self.stockitemmask.retrieve().value_fmt)
+        print(styles.is_entry_ok(self.stockitemmask))
 
 
 if __name__ == "__main__":
