@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk
 
 from scripts.itemrecord import ItemRecord
+import scripts.gui.styles
 from scripts.stockitemrecord import StockItemRecord
 
 
@@ -10,10 +11,6 @@ SHORT_FIELD = 8
 MID_FIELD = 16
 PADX = 3
 PADY = 3
-
-style = ttk.Style()
-style.configure("okstyle.TEntry", fieldbackground="white")
-style.configure("errorstyle.TEntry", fieldbackground="red")
 
 
 class StockItemMask(LabelFrame):
@@ -99,9 +96,6 @@ class StockItemMask(LabelFrame):
         except ValueError:
             widget["style"] = "errorstyle.TEntry"
         return True
-
-    def _compute_value(self) -> int:
-        pass
 
     def retrieve(self) -> StockItemRecord:
         return StockItemRecord(

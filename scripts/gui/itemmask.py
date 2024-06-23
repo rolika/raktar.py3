@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
+import scripts.gui.styles
 from scripts.itemrecord import ItemRecord
 
 
@@ -10,10 +11,6 @@ PADX = 3
 PADY = 3
 DEFAULT_PACKAGING = 0
 DEFAULT_SHELFLIFE = 12
-
-style = ttk.Style()
-style.configure("okstyle.TEntry", fieldbackground="white")
-style.configure("errorstyle.TEntry", fieldbackground="red")
 
 
 class ItemMask(LabelFrame):
