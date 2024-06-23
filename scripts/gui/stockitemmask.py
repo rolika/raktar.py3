@@ -2,8 +2,8 @@ from datetime import date
 from tkinter import *
 from tkinter import ttk
 
+from scripts.gui import styles
 from scripts.itemrecord import ItemRecord
-import scripts.gui.styles
 from scripts.stockitemrecord import StockItemRecord
 
 
@@ -79,22 +79,20 @@ class StockItemMask(LabelFrame):
         self.productiondate_var.set(date.today().isoformat())
 
     def _is_number(self, text:str, name:str) -> bool:
-        widget = self.nametowidget(name)
         try:
             number = float(text)
             if number >= 0:
-                widget["style"] = "okstyle.TEntry"
+                styles.apply_entry_ok(self, name)
         except ValueError:
-            widget["style"] = "errorstyle.TEntry"
+            styles.apply_entry_error(self, name)
         return True
 
     def _is_date(self, text:str, name:str) -> bool:
-        widget = self.nametowidget(name)
         try:
             date.fromisoformat(text)
-            widget["style"] = "okstyle.TEntry"
+            styles.apply_entry_ok(self, name)
         except ValueError:
-            widget["style"] = "errorstyle.TEntry"
+            styles.apply_entry_error(self, name)
         return True
 
     def retrieve(self) -> StockItemRecord:
