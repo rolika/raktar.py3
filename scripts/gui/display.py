@@ -14,7 +14,7 @@ class Display(LabelFrame):
         self._init_controll_variables()
         self._build_interface()
         self.grid(padx=PADX, pady=PADY)
-    
+
     def _init_controll_variables(self) -> None:
         self.articlenumber_var = StringVar()
         self.selectiontext_var = StringVar()

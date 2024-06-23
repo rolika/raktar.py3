@@ -26,15 +26,16 @@ class Gui(Frame):
         self.master.title(PROGRAM + " v" + version)
         self.grid(padx=PADX, pady=PADY)
         self._build_interface()
-    
+        self.bind_all("<KeyPress>", self._update_labels)
+
     def _build_interface(self):
         self.itemmask = ItemMask()
-        self.itemmask.bind_all("<KeyPress>", self._update_labels)
         self.stockitemmask = StockItemMask()
         self.display = Display()
-    
+
     def _update_labels(self, _:Event):
         self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
+        self.stockitemmask.value_var.set(self.stockitemmask.retrieve().value)
 
 
 if __name__ == "__main__":
