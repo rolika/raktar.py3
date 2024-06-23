@@ -35,9 +35,11 @@ class Gui(Frame):
 
     def _update_labels(self, _:Event):
         self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
-        self.stockitemmask.value_var.set(self.stockitemmask.retrieve().value)
+        self.stockitemmask.value_var.set(self.stockitemmask.retrieve().value_fmt)
 
 
 if __name__ == "__main__":
-   gui = Gui()
-   gui.mainloop()
+    import locale
+    locale.setlocale(locale.LC_ALL, "")
+    gui = Gui()
+    gui.mainloop()
