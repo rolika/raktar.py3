@@ -2,6 +2,7 @@ from datetime import date
 from tkinter import *
 from tkinter import ttk
 
+from scripts.gui import styles
 from scripts.itemrecord import ItemRecord
 from scripts.stockitemrecord import StockItemRecord
 
@@ -11,17 +12,12 @@ MID_FIELD = 16
 PADX = 3
 PADY = 3
 
-style = ttk.Style()
-style.configure("okstyle.TEntry", fieldbackground="white")
-style.configure("errorstyle.TEntry", fieldbackground="red")
-
 
 class StockItemMask(LabelFrame):
     def __init__(self):
         super().__init__(text="Raktári jellemzők")
         self._init_controll_variables()
         self._build_interface()
-        self.grid(padx=PADX, pady=PADY)
 
     def _init_controll_variables(self) -> None:
         self.place_var = StringVar()
@@ -29,6 +25,7 @@ class StockItemMask(LabelFrame):
         self.unit_var = StringVar()
         self.productiondate_var = StringVar()
         self.stock_var = StringVar()
+        self.value_var = StringVar()
 
     def _build_interface(self) -> None:
         is_number = self.register(self._is_number)
@@ -67,27 +64,34 @@ class StockItemMask(LabelFrame):
         Label(self, text="(éééé-hh-nn)")\
             .grid(row=1, column=5, sticky=W, padx=PADX, pady=PADY,
                   columnspan=2)
+
+        Label(self, text="Érték:")\
+            .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
+        Label(self, textvariable=self.value_var)\
+            .grid(row=2, column=1, sticky=E, padx=PADX, pady=PADY)
+        Label(self, text="Ft")\
+            .grid(row=2, column=2, sticky=W, padx=PADX, pady=PADY)
+
         self.unitprice_var.set("0")
         self.stock_var.set("0")
+        self.value_var.set("0")
         self.productiondate_var.set(date.today().isoformat())
 
     def _is_number(self, text:str, name:str) -> bool:
-        widget = self.nametowidget(name)
         try:
             number = float(text)
             if number >= 0:
-                widget["style"] = "okstyle.TEntry"
+                styles.apply_entry_ok(self, name)
         except ValueError:
-            widget["style"] = "errorstyle.TEntry"
+            styles.apply_entry_error(self, name)
         return True
 
     def _is_date(self, text:str, name:str) -> bool:
-        widget = self.nametowidget(name)
         try:
             date.fromisoformat(text)
-            widget["style"] = "okstyle.TEntry"
+            styles.apply_entry_ok(self, name)
         except ValueError:
-            widget["style"] = "errorstyle.TEntry"
+            styles.apply_entry_error(self, name)
         return True
 
     def retrieve(self) -> StockItemRecord:
@@ -106,4 +110,4 @@ class StockItemMask(LabelFrame):
         self.unit_var.set(item.unit)
 
     def is_valid(self) -> bool:
-        return bool(self.retrieve())
+        return styles.is_entry_ok(self)

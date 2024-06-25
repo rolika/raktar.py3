@@ -12,7 +12,15 @@ class StockItemRecord():
         try:
             stock = float(self.stock)
             unitprice = float(self.unitprice)
-            date = date.fromisoformat(self.productiondate)
+            date.fromisoformat(self.productiondate)
             return (stock >= 0) and (unitprice >= 0)
         except (AttributeError, ValueError):
             return False
+
+    @property
+    def value(self):
+        return float(self.stock) * float(self.unitprice) if bool(self) else 0
+    
+    @property
+    def value_fmt(self):
+        return f"{round(self.value):n}"

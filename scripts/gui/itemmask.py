@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
+from scripts.gui import styles
 from scripts.itemrecord import ItemRecord
 
 
@@ -11,17 +12,12 @@ PADY = 3
 DEFAULT_PACKAGING = 0
 DEFAULT_SHELFLIFE = 12
 
-style = ttk.Style()
-style.configure("okstyle.TEntry", fieldbackground="white")
-style.configure("errorstyle.TEntry", fieldbackground="red")
-
 
 class ItemMask(LabelFrame):
     def __init__(self):
         super().__init__(text="Anyag")
         self._init_controll_variables()
         self._build_interface()
-        self.grid(padx=PADX, pady=PADY)
 
     def _init_controll_variables(self) -> None:
         self.name_var = StringVar()
@@ -138,24 +134,22 @@ class ItemMask(LabelFrame):
                 child["state"] = NORMAL
 
     def is_valid(self) -> bool:
-        return bool(self.retrieve())
+        return styles.is_entry_ok(self)
 
     def _is_number(self, text:str, name:str) -> bool:
-        widget = self.nametowidget(name)
         try:
             number = float(text)
             if number >= 0:
-                widget["style"] = "okstyle.TEntry"
+                styles.apply_entry_ok(self, name)
         except ValueError:
-            widget["style"] = "errorstyle.TEntry"
+            styles.apply_entry_error(self, name)
         return True
 
     def _is_empty(self, text:str, name:str) -> bool:
-        widget = self.nametowidget(name)
         if text:
-            widget["style"] = "okstyle.TEntry"
+            styles.apply_entry_ok(self, name)
         else:
-            widget["style"] = "errorstyle.TEntry"
+            styles.apply_entry_error(self, name)
         return True
 
 
