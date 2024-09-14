@@ -17,6 +17,7 @@ class ItemList(LabelFrame):
     def _build_interface(self) -> None:
         filter_for = self.register(self._filter_for)
         self.filter_entry = ttk.Entry(self,
+                                      textvariable=self.filter_var,
                                       validate="all",
                                       validatecommand=(filter_for, "%P"))
 
