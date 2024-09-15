@@ -24,6 +24,7 @@ class ItemList(LabelFrame):
         vertical_scroll = Scrollbar(self, orient=VERTICAL)
         self.list_box = Listbox(self,
                                 cursor="hand2",
+                               font=("Liberation Mono", "-12"),
                                 listvariable=self.list_var,
                                 selectmode=SINGLE,
                                 width=60,
@@ -49,9 +50,12 @@ class ItemList(LabelFrame):
 
     def _filter_for(self, text:str) -> bool:
         self.list_box.delete(0, END)
-        for i, item in enumerate(self._master_list):
-            if text in str(item):
-                self.list_box.insert(i, str(item))
+        try:
+            for i, item in enumerate(self._master_list):
+                if text in str(item):
+                    self.list_box.insert(i, str(item))
+        except TypeError:
+            print("No items.")
         return True
 
 
