@@ -3,9 +3,6 @@ INVENTORY APPLICATION
 """
 
 
-import locale
-locale.setlocale(locale.LC_ALL, "")
-
 from scripts.databasesession import DatabaseSession
 from scripts.filesession import FileSession
 from scripts.gui.gui import Gui

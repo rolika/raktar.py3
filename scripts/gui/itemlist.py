@@ -28,7 +28,7 @@ class ItemList(LabelFrame):
                                 listvariable=self.list_var,
                                 selectmode=SINGLE,
                                 width=60,
-                                height=18,
+                                height=23,
                                 yscrollcommand=vertical_scroll.set)
         vertical_scroll["command"]=self.list_box.yview
 

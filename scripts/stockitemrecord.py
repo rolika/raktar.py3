@@ -1,4 +1,6 @@
 from datetime import date
+import locale
+locale.setlocale(locale.LC_ALL, "")
 
 
 TRANSLATE_ATTRIBUTES = {
@@ -28,12 +30,13 @@ class StockItemRecord():
     def __init__(self, **kwargs) -> None:
         for arg, value in kwargs.items():
             setattr(self, TRANSLATE_ATTRIBUTES.get(arg, arg), value)
-    
+
     def __str__(self) -> str:
         space = " " if self.manufacturer else ""
-        return "{:<41} {:>10.2f} {:<7}".format(
+        return "{:<41} {:>10} {:<7}".format(
                 (self.manufacturer + space + self.name)[0:41],
-                self.stock, self.unit)
+                locale.format_string(f="%.2f", val=self.stock, grouping=True),
+                self.unit)
 
     def __bool__(self) -> bool:
         try:
@@ -47,7 +50,7 @@ class StockItemRecord():
     @property
     def value(self):
         return float(self.stock) * float(self.unitprice) if bool(self) else 0
-    
+
     @property
     def value_fmt(self):
         return f"{round(self.value):n}"
