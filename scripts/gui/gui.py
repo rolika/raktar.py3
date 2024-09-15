@@ -2,7 +2,7 @@ import os
 from tkinter import *
 
 from scripts.gui.displaymask import DisplayMask
-from scripts.gui.itemlist import ItemList
+from scripts.gui.itemlistbox import ItemListbox
 from scripts.gui.itemmask import ItemMask
 from scripts.gui.stockitemmask import StockItemMask
 
@@ -33,7 +33,7 @@ class Gui(Frame):
         self.displaymask = DisplayMask()
         self.stockitemmask = StockItemMask()
         self.itemmask = ItemMask()
-        self.itemlist = ItemList()
+        self.itemlist = ItemListbox()
         self.displaymask.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
         self.itemmask.grid(row=1, column=0, padx=PADX, pady=PADY, sticky=E+W)
         self.stockitemmask.grid(row=2, column=0, padx=PADX, pady=PADY,

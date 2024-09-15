@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 
-class ItemList(LabelFrame):
+class ItemListbox(LabelFrame):
     def __init__(self, title="Raktárkészlet") -> None:
         super().__init__(text=title)
         self._init_controll_variables()
@@ -60,6 +60,6 @@ class ItemList(LabelFrame):
 
 
 if __name__ == "__main__":
-    itemlist = ItemList()
+    itemlist = ItemListbox()
     itemlist.grid()
     itemlist.mainloop()
