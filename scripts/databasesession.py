@@ -46,7 +46,25 @@ class DatabaseSession(sqlite3.Connection):
                 """)
 
     def select_all_items(self) -> sqlite3.Cursor:
-        return self.execute("""SELECT * FROM raktar ORDER BY gyarto, megnevezes;
+        return self.execute("""
+            SELECT  cikkszam,
+                    CAST(keszlet AS REAL) AS keszlet,
+                    megnevezes,
+                    becenev,
+                    gyarto,
+                    leiras,
+                    megjegyzes,
+                    egyseg,
+                    CAST(egysegar AS INT) AS egysegar,
+                    kiszereles,
+                    hely,
+                    lejarat,
+                    gyartasido,
+                    szin,
+                    jeloles,
+                    letrehozas,
+                    utolso_modositas
+            FROM raktar ORDER BY gyarto, megnevezes;
                """)
 
     def select_item(self, primary_key:int) -> sqlite3.Cursor:
