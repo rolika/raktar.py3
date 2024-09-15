@@ -1,12 +1,39 @@
 from datetime import date
 
 
+TRANSLATE_ATTRIBUTES = {
+    "cikkszam": "articlenumber",
+    "keszlet": "stock",
+    "megnevezes": "name",
+    "becenev": "nickname",
+    "gyarto": "manufacturer",
+    "leiras": "description",
+    "megjegyzes": "comment",
+    "egyseg": "unit",
+    "egysegar": "unitprice",
+    "kiszereles": "packaging",
+    "hely": "place",
+    "lejarat": "shelflife",
+    "gyartasido": "productiondate",
+    "szin": "color",
+    "jeloles": "notation",
+    "letrehozas": "created",
+    "utolso_modositas": "modified"
+}
+
+
 class StockItemRecord():
     """Handles a single item in the stock."""
 
     def __init__(self, **kwargs) -> None:
         for arg, value in kwargs.items():
-            setattr(self, arg, value)
+            setattr(self, TRANSLATE_ATTRIBUTES.get(arg, arg), value)
+    
+    def __str__(self) -> str:
+        space = " " if self.manufacturer else ""
+        return "{:<41} {:>10.2f} {:<7}".format(
+                (self.manufacturer + space + self.name)[0:41],
+                self.stock, self.unit)
 
     def __bool__(self) -> bool:
         try:
