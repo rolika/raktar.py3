@@ -15,16 +15,14 @@ class ItemListbox(LabelFrame):
         self.list_var = StringVar()
 
     def _build_interface(self) -> None:
-        filter_for = self.register(self._filter_for)
         self.filter_entry = ttk.Entry(self,
                                       textvariable=self.filter_var,
-                                      validate="all",
-                                      validatecommand=(filter_for, "%P"))
+                                      validate="key")
 
         vertical_scroll = Scrollbar(self, orient=VERTICAL)
         self.list_box = Listbox(self,
                                 cursor="hand2",
-                               font=("Liberation Mono", "-12"),
+                                font=("Liberation Mono", "-12"),
                                 listvariable=self.list_var,
                                 selectmode=SINGLE,
                                 width=60,
@@ -44,19 +42,14 @@ class ItemListbox(LabelFrame):
         vertical_scroll.grid(row=1, column=1, sticky=N+S)
 
     def populate(self, item_list:list) -> None:
-        self._master_list = list(item_list)
-        for i, item in enumerate(item_list):
-            self.list_box.insert(i, str(item))
-
-    def _filter_for(self, text:str) -> bool:
+        for item in item_list:
+            self.list_box.insert(END, str(item))
+        
+    def clear(self) -> None:
         self.list_box.delete(0, END)
-        try:
-            for i, item in enumerate(self._master_list):
-                if text in str(item):
-                    self.list_box.insert(i, str(item))
-        except TypeError:
-            print("No items.")
-        return True
+    
+    def register_filter(self, reference:str) -> None:
+        self.filter_entry["validatecommand"] = (reference, "%P")
 
 
 if __name__ == "__main__":

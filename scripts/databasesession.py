@@ -174,7 +174,23 @@ class DatabaseSession(sqlite3.Connection):
 
     def filter_for(self, term:str) -> sqlite3.Cursor:
         return self.execute(f"""
-SELECT cikkszam, megnevezes, becenev, gyarto, leiras, szin, megjegyzes, hely
+SELECT  cikkszam,
+        CAST(keszlet AS REAL) AS keszlet,
+        megnevezes,
+        becenev,
+        gyarto,
+        leiras,
+        megjegyzes,
+        egyseg,
+        CAST(egysegar AS INT) AS egysegar,
+        kiszereles,
+        hely,
+        lejarat,
+        gyartasido,
+        szin,
+        jeloles,
+        letrehozas,
+        utolso_modositas
 FROM raktar
 WHERE
 lower(megnevezes || becenev || gyarto || leiras || szin || megjegyzes || hely)
