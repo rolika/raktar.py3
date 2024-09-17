@@ -20,8 +20,8 @@ class Gui(Frame):
     def __init__(self, root=None, version="0.0.0"):
         super().__init__(root)
         if os.name == "posix":
-            ikon = PhotoImage(file = LINUX_ICON)
-            self.master.tk.call("wm", "iconphoto", self.master._w, ikon)
+            icon = PhotoImage(file = LINUX_ICON)
+            self.master.tk.call("wm", "iconphoto", self.master._w, icon)
         else:
             self.master.iconbitmap(default = WINDOWS_ICON)
         self.master.title(PROGRAM + " v" + version)

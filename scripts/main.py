@@ -16,20 +16,20 @@ DATABASE = "data/adatok.db"
 
 class InventoryApp():
     def __init__(self, database:str=DATABASE) -> None:
-        self.dbsession = DatabaseSession(database)
-        self.gui = Gui()
-        lookup_ = self.gui.itemlistbox.register(self.lookup)
-        self.gui.itemlistbox.register_filter(lookup_)
-        all_items = self.dbsession.select_all_items()
-        self.gui.itemlistbox.populate(self.load(all_items))
-        self.gui.mainloop()
-    
+        self._dbsession = DatabaseSession(database)
+        self._gui = Gui()
+        lookup_ = self._gui.itemlistbox.register(self.lookup)
+        self._gui.itemlistbox.register_filter(lookup_)
+        all_items = self._dbsession.select_all_items()
+        self._gui.itemlistbox.populate(self.load(all_items))
+        self._gui.mainloop()
+
     def lookup(self, text:str) -> bool:
-        self.gui.itemlistbox.clear()
-        if filtered := self.dbsession.filter_for(text):
-            self.gui.itemlistbox.populate(self.load(filtered))
+        self._gui.itemlistbox.clear()
+        if filtered := self._dbsession.filter_for(text):
+            self._gui.itemlistbox.populate(self.load(filtered))
         return True
-    
+
     def load(self, source:iter) -> list[StockItemRecord]:
         return [StockItemRecord(**item) for item in source.fetchall()]
 
