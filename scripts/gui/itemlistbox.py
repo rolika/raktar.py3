@@ -16,6 +16,7 @@ class ItemListbox(LabelFrame):
         self._filter_entry = ttk.Entry(self,
                                       textvariable=self.filter_var,
                                       validate="key")
+        Label(self, bitmap="questhead").grid(row=0, column=1)
 
         vertical_scroll = Scrollbar(self, orient=VERTICAL)
         self._listbox = Listbox(self,
@@ -35,7 +36,7 @@ class ItemListbox(LabelFrame):
         self._listbox.bind("<MouseWheel>",
             lambda e: self._listbox.yview_scroll(int(e.delta / 120), UNITS))
 
-        self._filter_entry.grid(row=0, column=0, columnspan=2, sticky=E+W)
+        self._filter_entry.grid(row=0, column=0, sticky=E+W)
         self._listbox.grid(row=1, column=0)
         vertical_scroll.grid(row=1, column=1, sticky=N+S)
 
