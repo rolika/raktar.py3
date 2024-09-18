@@ -42,7 +42,8 @@ class InventoryApp():
     
     def show_selected(self, _) -> None:
         item = self._gui.itemlistbox.get_record()
-        self._gui.update_mask(item)
+        if item:
+            self._gui.update_mask(item)
 
 
 

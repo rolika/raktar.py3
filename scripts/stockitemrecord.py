@@ -42,7 +42,7 @@ class StockItemRecord():
         try:
             stock = float(self.stock)
             unitprice = float(self.unitprice)
-            date.fromisoformat(self.productiondate)
+            #date.fromisoformat(self.productiondate)
             return (stock >= 0) and (unitprice >= 0)
         except (AttributeError, ValueError):
             return False

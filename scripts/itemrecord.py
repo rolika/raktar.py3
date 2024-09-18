@@ -8,8 +8,8 @@ class ItemRecord():
     def __bool__(self) -> bool:
         try:
             return bool(self.name) and\
-                   bool(self.manufacturer) and\
-                   bool(self.unit)
+                   bool(self.unit) #and\
+                   #bool(self.manufacturer)
         except AttributeError:
             return False
 
