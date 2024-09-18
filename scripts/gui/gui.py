@@ -32,8 +32,8 @@ class Gui(Frame):
 
     def _build_interface(self):
         self.displaymask = DisplayMask()
-        self.stockitemmask = StockItemMask()
         self.itemmask = ItemMask()
+        self.stockitemmask = StockItemMask()
         self.itemlistbox = ItemListbox()
         self.displaymask.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
         self.itemmask.grid(row=1, column=0, padx=PADX, pady=PADY, sticky=E+W)
