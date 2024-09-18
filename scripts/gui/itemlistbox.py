@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
+from scripts.stockitemrecord import StockItemRecord
+
 
 class ItemListbox(LabelFrame):
     def __init__(self, title="Raktárkészlet") -> None:
@@ -41,6 +43,7 @@ class ItemListbox(LabelFrame):
         vertical_scroll.grid(row=1, column=1, sticky=N+S)
 
     def populate(self, item_list:list) -> None:
+        self._item_list = item_list
         for item in item_list:
             self._listbox.insert(END, str(item))
 
@@ -49,6 +52,19 @@ class ItemListbox(LabelFrame):
 
     def register_filter(self, reference:str) -> None:
         self._filter_entry["validatecommand"] = (reference, "%P")
+    
+    def bind_selection(self, method:callable) -> None:
+        self._listbox.bind("<<ListboxSelect>>", method)
+    
+    def get_record(self) -> StockItemRecord:
+        try:
+            return self._item_list[self._listbox.curselection()[0]]
+        except IndexError:  # empty list
+            return None
+    
+    def select_first(self) -> None:
+        self._listbox.selection_set(0)
+        self._listbox.event_generate("<<ListboxSelect>>")
 
 
 if __name__ == "__main__":

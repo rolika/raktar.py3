@@ -108,6 +108,7 @@ class StockItemMask(LabelFrame):
         self.place_var.set(stockitem.place)
         self.productiondate_var.set(stockitem.productiondate)
         self.unit_var.set(item.unit)
+        self.value_var.set(stockitem.value_fmt)
 
     def is_valid(self) -> bool:
         return styles.is_entry_ok(self)

@@ -5,6 +5,7 @@ from scripts.gui.displaymask import DisplayMask
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.gui.itemmask import ItemMask
 from scripts.gui.stockitemmask import StockItemMask
+from scripts.stockitemrecord import StockItemRecord
 
 
 PROGRAM = "Készlet-nyilvántartó"
@@ -41,10 +42,15 @@ class Gui(Frame):
         self.itemlistbox.grid(row=0, column=1, rowspan=3, padx=PADX, pady=PADY,
                            sticky=N+S)
 
-    def _update_labels(self, _:Event):
+    def _update_labels(self, _):
         self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
         self.stockitemmask.value_var.set(self.stockitemmask.retrieve().value_fmt)
         self.displaymask.selectiontext_var.set(self.itemlistbox.filter_var.get())
+    
+    def update_mask(self, item:StockItemRecord) -> None:
+        self.itemmask.populate(item)
+        self.stockitemmask.populate(item, item)
+        self._update_labels(1)
 
 
 if __name__ == "__main__":

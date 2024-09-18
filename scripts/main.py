@@ -3,6 +3,7 @@ INVENTORY APPLICATION
 """
 
 
+from sqlite3 import Cursor
 from scripts.databasesession import DatabaseSession
 from scripts.filesession import FileSession
 from scripts.gui.gui import Gui
@@ -20,18 +21,29 @@ class InventoryApp():
         self._gui = Gui()
         lookup_ = self._gui.itemlistbox.register(self.lookup)
         self._gui.itemlistbox.register_filter(lookup_)
+        self._gui.itemlistbox.bind_selection(self.show_selected)
         all_items = self._dbsession.select_all_items()
         self._gui.itemlistbox.populate(self.load(all_items))
+        self._gui.itemlistbox.select_first()
         self._gui.mainloop()
 
     def lookup(self, text:str) -> bool:
         self._gui.itemlistbox.clear()
-        if filtered := self._dbsession.filter_for(text):
-            self._gui.itemlistbox.populate(self.load(filtered))
+        filtered = self._dbsession.filter_for(text)
+        self._gui.itemlistbox.populate(self.load(filtered))
+        try:
+            self._gui.itemlistbox.select_first()
+        except IndexError:  # no result, empty list
+            pass
         return True
 
-    def load(self, source:iter) -> list[StockItemRecord]:
+    def load(self, source:Cursor) -> list[StockItemRecord]:
         return [StockItemRecord(**item) for item in source.fetchall()]
+    
+    def show_selected(self, _) -> None:
+        item = self._gui.itemlistbox.get_record()
+        self._gui.update_mask(item)
+
 
 
 if __name__ == "__main__":
