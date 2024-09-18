@@ -33,18 +33,20 @@ class StockItemMask(LabelFrame):
 
         Label(self, text="Készlet:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
-                  textvariable=self.stock_var,
-                  validate="all", validatecommand=(is_number, "%P", "%W"))\
-            .grid(row=0, column=1, padx=PADX, pady=PADY)
+        self._stock_entry =\
+            ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
+                      textvariable=self.stock_var, validate="all",
+                      validatecommand=(is_number, "%P", "%W"))
+        self._stock_entry.grid(row=0, column=1, padx=PADX, pady=PADY)
         Label(self, textvariable=self.unit_var)\
             .grid(row=0, column=2, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="Egységár:")\
             .grid(row=0, column=3, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
-                  textvariable=self.unitprice_var,
-                  validate="all", validatecommand=(is_number, "%P", "%W"))\
-            .grid(row=0, column=4, padx=PADX, pady=PADY)
+        self._unitprice_entry =\
+            ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
+                      textvariable=self.unitprice_var, validate="all", 
+                      validatecommand=(is_number, "%P", "%W"))
+        self._unitprice_entry.grid(row=0, column=4, padx=PADX, pady=PADY)
         Label(self, text="Ft /")\
             .grid(row=0, column=5, sticky=E, padx=PADX, pady=PADY)
         Label(self, textvariable=self.unit_var)\
@@ -57,10 +59,11 @@ class StockItemMask(LabelFrame):
             .grid(row=1, column=1, padx=PADX, pady=PADY)
         Label(self, text="Gyártási idő:")\
             .grid(row=1, column=3, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
-                  textvariable=self.productiondate_var,
-                  validate="all", validatecommand=(is_date, "%P", "%W"))\
-            .grid(row=1, column=4, padx=PADX, pady=PADY)
+        self._productiondate_entry =\
+            ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
+                      textvariable=self.productiondate_var, validate="all",
+                      validatecommand=(is_date, "%P", "%W"))
+        self._productiondate_entry.grid(row=1, column=4, padx=PADX, pady=PADY)
         Label(self, text="(éééé-hh-nn)")\
             .grid(row=1, column=5, sticky=W, padx=PADX, pady=PADY,
                   columnspan=2)
@@ -109,6 +112,9 @@ class StockItemMask(LabelFrame):
         self.productiondate_var.set(stockitem.productiondate)
         self.unit_var.set(item.unit)
         self.value_var.set(stockitem.value_fmt)
+        self._stock_entry["style"] = "okstlye.TEntry"
+        self._unitprice_entry["style"] = "okstlye.TEntry"
+        self._productiondate_entry["style"] = "okstlye.TEntry"
 
     def is_valid(self) -> bool:
         return styles.is_entry_ok(self)

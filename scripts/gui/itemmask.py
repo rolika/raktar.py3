@@ -35,22 +35,22 @@ class ItemMask(LabelFrame):
         is_empty = self.register(self._is_empty)
         Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
-        name_entry = ttk.Entry(self, justify=LEFT, textvariable=self.name_var,
-                               name="name", validate="all",
-                               validatecommand=(is_empty, "%P", "%W"))
-        name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
-                        columnspan=6)
-        name_entry.focus()
+        self._name_entry = ttk.Entry(self, justify=LEFT,
+                                     textvariable=self.name_var,
+                                     name="name", validate="all",
+                                     validatecommand=(is_empty, "%P", "%W"))
+        self._name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
+                              columnspan=6)
+        self._name_entry.focus()
 
         Label(self, text="Gyártó:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
-        manufacturer_entry = ttk.Entry(self, justify=LEFT,
-                                       textvariable=self.manufacturer_var, name="manufacturer",
-                                       validate="all",
-                                       validatecommand=(is_empty, "%P", "%W"))
-        manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
-                                pady=PADY, columnspan=3)
-        manufacturer_entry["style"] = "errorstyle.TEntry"
+        self._manufacturer_entry =\
+            ttk.Entry(self, justify=LEFT, textvariable=self.manufacturer_var,
+                      name="manufacturer", validate="all",
+                      validatecommand=(is_empty, "%P", "%W"))
+        self._manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
+                                      pady=PADY, columnspan=3)
         Label(self, text="Becenév:")\
             .grid(row=1, column=4, sticky=E, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, textvariable=self.nickname_var)\
@@ -80,20 +80,21 @@ class ItemMask(LabelFrame):
                   textvariable=self.packaging_var, name="packaging",
                   validate="all", validatecommand=(is_number, "%P", "%W"))\
                     .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
-        unit_entry = ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
-                               textvariable=self.unit_var, name="unit",
-                               validate="all",
-                               validatecommand=(is_empty, "%P", "%W"))
-        unit_entry.grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
-        unit_entry["style"] = "errorstyle.TEntry"
+        self._unit_entry =\
+            ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
+                      textvariable=self.unit_var, name="unit", validate="all",
+                      validatecommand=(is_empty, "%P", "%W"))
+        self._unit_entry.grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="egység")\
             .grid(row=4, column=3, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="Eltartható:")\
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
-        ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
-                  textvariable=self.shelflife_var, name="shelflife",
-                  validate="all", validatecommand=(is_number, "%P", "%W"))\
-            .grid(row=4, column=5, sticky=W, padx=PADX, pady=PADY)
+        self._shelflife_entry =\
+            ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
+                      textvariable=self.shelflife_var, name="shelflife",
+                      validate="all", validatecommand=(is_number, "%P", "%W"))
+        self._shelflife_entry.grid(row=4, column=5, sticky=W,
+                                   padx=PADX, pady=PADY)
         Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
         self.packaging_var.set(DEFAULT_PACKAGING)
@@ -122,6 +123,10 @@ class ItemMask(LabelFrame):
         self.unit_var.set(item.unit)
         self.packaging_var.set(item.packaging)
         self.shelflife_var.set(item.shelflife)
+        self._name_entry["style"] = "okstyle.TEntry"
+        self._manufacturer_entry["style"] = "okstyle.TEntry"
+        self._unit_entry["style"] = "okstyle.TEntry"
+        self._shelflife_entry["style"] = "okstyle.TEntry"
 
     def disable(self) -> None:
         for child in self.winfo_children():
