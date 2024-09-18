@@ -37,7 +37,7 @@ class ItemMask(LabelFrame):
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         self._name_entry = ttk.Entry(self, justify=LEFT,
                                      textvariable=self.name_var,
-                                     name="name", validate="all",
+                                     name="name", validate="key",
                                      validatecommand=(is_empty, "%P", "%W"))
         self._name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
                               columnspan=6)
@@ -47,7 +47,7 @@ class ItemMask(LabelFrame):
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
         self._manufacturer_entry =\
             ttk.Entry(self, justify=LEFT, textvariable=self.manufacturer_var,
-                      name="manufacturer", validate="all",
+                      name="manufacturer", validate="key",
                       validatecommand=(is_empty, "%P", "%W"))
         self._manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
                                       pady=PADY, columnspan=3)
@@ -78,7 +78,7 @@ class ItemMask(LabelFrame):
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
                   textvariable=self.packaging_var, name="packaging",
-                  validate="all", validatecommand=(is_number, "%P", "%W"))\
+                  validate="key", validatecommand=(is_number, "%P", "%W"))\
                     .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
         self._unit_entry =\
             ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
@@ -92,7 +92,7 @@ class ItemMask(LabelFrame):
         self._shelflife_entry =\
             ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
                       textvariable=self.shelflife_var, name="shelflife",
-                      validate="all", validatecommand=(is_number, "%P", "%W"))
+                      validate="key", validatecommand=(is_number, "%P", "%W"))
         self._shelflife_entry.grid(row=4, column=5, sticky=W,
                                    padx=PADX, pady=PADY)
         Label(self, text="hónap")\
