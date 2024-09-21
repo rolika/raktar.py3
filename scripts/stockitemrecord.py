@@ -48,9 +48,5 @@ class StockItemRecord():
             return False
 
     @property
-    def value(self):
+    def value(self) -> float:
         return float(self.stock) * float(self.unitprice) if bool(self) else 0
-
-    @property
-    def value_fmt(self):
-        return f"{round(self.value):n}"

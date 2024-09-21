@@ -43,9 +43,9 @@ class Gui(Frame):
                            sticky=N+S)
 
     def _update_labels(self, _):
-        self.stockitemmask.unit_var.set(self.itemmask.unit_var.get())
-        self.stockitemmask.value_var.set(self.stockitemmask.retrieve().value_fmt)
-        self.displaymask.selectiontext_var.set(self.itemlistbox.filter_var.get())
+        self.stockitemmask.unit = self.itemmask.unit
+        self.stockitemmask.value = self.stockitemmask.retrieve().value
+        self.displaymask.update_(self.itemlistbox.filter_var.get())
     
     def update_mask(self, item:StockItemRecord) -> None:
         self.itemmask.populate(item)

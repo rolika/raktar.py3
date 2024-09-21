@@ -20,12 +20,12 @@ class StockItemMask(LabelFrame):
         self._build_interface()
 
     def _init_controll_variables(self) -> None:
-        self.place_var = StringVar()
-        self.unitprice_var = StringVar()
-        self.unit_var = StringVar()
-        self.productiondate_var = StringVar()
-        self.stock_var = StringVar()
-        self.value_var = StringVar()
+        self.__place_var = StringVar()
+        self.__unitprice_var = StringVar()
+        self.__unit_var = StringVar()
+        self.__productiondate_var = StringVar()
+        self.__stock_var = StringVar()
+        self.__value_var = StringVar()
 
     def _build_interface(self) -> None:
         is_number = self.register(self._is_number)
@@ -33,52 +33,52 @@ class StockItemMask(LabelFrame):
 
         Label(self, text="Készlet:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
-        self._stock_entry =\
+        self.__stock_entry =\
             ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
-                      textvariable=self.stock_var, validate="key",
+                      textvariable=self.__stock_var, validate="all",
                       validatecommand=(is_number, "%P", "%W"))
-        self._stock_entry.grid(row=0, column=1, padx=PADX, pady=PADY)
-        Label(self, textvariable=self.unit_var)\
+        self.__stock_entry.grid(row=0, column=1, padx=PADX, pady=PADY)
+        Label(self, textvariable=self.__unit_var)\
             .grid(row=0, column=2, sticky=W, padx=PADX, pady=PADY)
         Label(self, text="Egységár:")\
             .grid(row=0, column=3, sticky=W, padx=PADX, pady=PADY)
-        self._unitprice_entry =\
+        self.__unitprice_entry =\
             ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
-                      textvariable=self.unitprice_var, validate="key", 
+                      textvariable=self.__unitprice_var, validate="all", 
                       validatecommand=(is_number, "%P", "%W"))
-        self._unitprice_entry.grid(row=0, column=4, padx=PADX, pady=PADY)
+        self.__unitprice_entry.grid(row=0, column=4, padx=PADX, pady=PADY)
         Label(self, text="Ft /")\
             .grid(row=0, column=5, sticky=E, padx=PADX, pady=PADY)
-        Label(self, textvariable=self.unit_var)\
+        Label(self, textvariable=self.__unit_var)\
             .grid(row=0, column=6, sticky=W, padx=PADX, pady=PADY)
 
         Label(self, text="Hely/projekt:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, justify=LEFT, width=MID_FIELD,
-                  textvariable=self.place_var)\
+                  textvariable=self.__place_var)\
             .grid(row=1, column=1, padx=PADX, pady=PADY)
         Label(self, text="Gyártási idő:")\
             .grid(row=1, column=3, sticky=W, padx=PADX, pady=PADY)
-        self._productiondate_entry =\
+        self.__productiondate_entry =\
             ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
-                      textvariable=self.productiondate_var, validate="key",
+                      textvariable=self.__productiondate_var, validate="all",
                       validatecommand=(is_date, "%P", "%W"))
-        self._productiondate_entry.grid(row=1, column=4, padx=PADX, pady=PADY)
+        self.__productiondate_entry.grid(row=1, column=4, padx=PADX, pady=PADY)
         Label(self, text="(éééé-hh-nn)")\
             .grid(row=1, column=5, sticky=W, padx=PADX, pady=PADY,
                   columnspan=2)
 
         Label(self, text="Érték:")\
             .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
-        Label(self, textvariable=self.value_var)\
+        Label(self, textvariable=self.__value_var)\
             .grid(row=2, column=1, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="Ft")\
             .grid(row=2, column=2, sticky=W, padx=PADX, pady=PADY)
 
-        self.unitprice_var.set("0")
-        self.stock_var.set("0")
-        self.value_var.set("0")
-        self.productiondate_var.set(date.today().isoformat())
+        self.__unitprice_var.set("0")
+        self.__stock_var.set("0")
+        self.__value_var.set("0")
+        self.__productiondate_var.set(date.today().isoformat())
 
     def _is_number(self, text:str, name:str) -> bool:
         try:
@@ -99,22 +99,38 @@ class StockItemMask(LabelFrame):
 
     def retrieve(self) -> StockItemRecord:
         return StockItemRecord(
-            stock=self.stock_var.get(),
-            unitprice=self.unitprice_var.get(),
-            place=self.place_var.get(),
-            productiondate=self.productiondate_var.get()
+            stock=self.__stock_var.get(),
+            unitprice=self.__unitprice_var.get(),
+            place=self.__place_var.get(),
+            productiondate=self.__productiondate_var.get()
         )
 
     def populate(self, stockitem:StockItemRecord, item:ItemRecord) -> None:
-        self.stock_var.set(stockitem.stock)
-        self.unitprice_var.set(stockitem.unitprice)
-        self.place_var.set(stockitem.place)
-        self.productiondate_var.set(stockitem.productiondate)
-        self.unit_var.set(item.unit)
-        self.value_var.set(stockitem.value_fmt)
-        self._stock_entry["style"] = "okstlye.TEntry"
-        self._unitprice_entry["style"] = "okstlye.TEntry"
-        self._productiondate_entry["style"] = "okstlye.TEntry"
+        self.__stock_var.set(stockitem.stock)
+        self.__unitprice_var.set(stockitem.unitprice)
+        self.__place_var.set(stockitem.place)
+        self.__productiondate_var.set(stockitem.productiondate)
+        self.__unit_var.set(item.unit)
+        self.__value_var.set(stockitem.value_fmt)
+        self.__stock_entry["style"] = "okstlye.TEntry"
+        self.__unitprice_entry["style"] = "okstlye.TEntry"
+        self.__productiondate_entry["style"] = "okstlye.TEntry"
 
     def is_valid(self) -> bool:
         return styles.is_entry_ok(self)
+    
+    @property
+    def unit(self) -> str:
+        return self.__unit_var.get()
+    
+    @unit.setter
+    def unit(self, value:str) -> None:
+        self.__unit_var.set(value)
+    
+    @property
+    def value(self) -> str:
+        return self.__value_var.get()
+    
+    @value.setter
+    def value(self, value_:float) -> None:
+        self.__value_var.set(f"{round(value_):n}")

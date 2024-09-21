@@ -20,113 +20,113 @@ class ItemMask(LabelFrame):
         self._build_interface()
 
     def _init_controll_variables(self) -> None:
-        self.name_var = StringVar()
-        self.nickname_var = StringVar()
-        self.manufacturer_var = StringVar()
-        self.description_var = StringVar()
-        self.color_var = StringVar()
-        self.comment_var = StringVar()
-        self.unit_var = StringVar()
-        self.packaging_var = StringVar()
-        self.shelflife_var = StringVar()
+        self.__name_var = StringVar()
+        self.__nickname_var = StringVar()
+        self.__manufacturer_var = StringVar()
+        self.__description_var = StringVar()
+        self.__color_var = StringVar()
+        self.__comment_var = StringVar()
+        self.__unit_var = StringVar()
+        self.__packaging_var = StringVar()
+        self.__shelflife_var = StringVar()
 
     def _build_interface(self) -> None:
         is_number = self.register(self._is_number)
         is_empty = self.register(self._is_empty)
         Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
-        self._name_entry = ttk.Entry(self, justify=LEFT,
-                                     textvariable=self.name_var,
-                                     name="name", validate="key",
-                                     validatecommand=(is_empty, "%P", "%W"))
-        self._name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX, pady=PADY,
-                              columnspan=6)
-        self._name_entry.focus()
+        self.__name_entry =\
+            ttk.Entry(self, justify=LEFT, textvariable=self.__name_var,
+                      name="name", validate="all",
+                      validatecommand=(is_empty, "%P", "%W"))
+        self.__name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX,
+                               pady=PADY, columnspan=6)
+        self.__name_entry.focus()
 
         Label(self, text="Gyártó:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
-        self._manufacturer_entry =\
-            ttk.Entry(self, justify=LEFT, textvariable=self.manufacturer_var,
-                      name="manufacturer", validate="key",
+        self.__manufacturer_entry =\
+            ttk.Entry(self, justify=LEFT, textvariable=self.__manufacturer_var,
+                      name="manufacturer", validate="all",
                       validatecommand=(is_empty, "%P", "%W"))
-        self._manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
+        self.__manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
                                       pady=PADY, columnspan=3)
         Label(self, text="Becenév:")\
             .grid(row=1, column=4, sticky=E, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=LEFT, textvariable=self.nickname_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__nickname_var)\
             .grid(row=1, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
         Label(self, text="Leírás:")\
             .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=LEFT, textvariable=self.description_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__description_var)\
             .grid(row=2, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=6)
 
         Label(self, text="Megjegyzés:")\
             .grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=LEFT, textvariable=self.comment_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__comment_var)\
             .grid(row=3, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=3)
         Label(self, text="Szín:")\
             .grid(row=3, column=4, sticky=E, padx=PADX, pady=PADY)
-        ttk.Entry(self, justify=LEFT, textvariable=self.color_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__color_var)\
             .grid(row=3, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
         Label(self, text="Kiszerelés:")\
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
         ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
-                  textvariable=self.packaging_var, name="packaging",
-                  validate="key", validatecommand=(is_number, "%P", "%W"))\
+                  textvariable=self.__packaging_var, name="packaging",
+                  validate="all", validatecommand=(is_number, "%P", "%W"))\
                     .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
-        self._unit_entry =\
+        self.__unit_entry =\
             ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
-                      textvariable=self.unit_var, name="unit", validate="all",
+                      textvariable=self.__unit_var, name="unit", validate="all",
                       validatecommand=(is_empty, "%P", "%W"))
-        self._unit_entry.grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
+        self.__unit_entry.grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="egység")\
             .grid(row=4, column=3, sticky=E, padx=PADX, pady=PADY)
         Label(self, text="Eltartható:")\
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
-        self._shelflife_entry =\
+        self.__shelflife_entry =\
             ttk.Entry(self, width=MID_FIELD, justify=RIGHT,
-                      textvariable=self.shelflife_var, name="shelflife",
-                      validate="key", validatecommand=(is_number, "%P", "%W"))
-        self._shelflife_entry.grid(row=4, column=5, sticky=W,
+                      textvariable=self.__shelflife_var, name="shelflife",
+                      validate="all", validatecommand=(is_number, "%P", "%W"))
+        self.__shelflife_entry.grid(row=4, column=5, sticky=W,
                                    padx=PADX, pady=PADY)
         Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
-        self.packaging_var.set(DEFAULT_PACKAGING)
-        self.shelflife_var.set(DEFAULT_SHELFLIFE)
+        self.__packaging_var.set(DEFAULT_PACKAGING)
+        self.__shelflife_var.set(DEFAULT_SHELFLIFE)
 
     def retrieve(self) -> ItemRecord:
         return ItemRecord(
-            name=self.name_var.get(),
-            nickname=self.nickname_var.get(),
-            manufacturer=self.manufacturer_var.get(),
-            description=self.description_var.get(),
-            color=self.color_var.get(),
-            comment=self.comment_var.get(),
-            unit=self.unit_var.get(),
-            packaging=self.packaging_var.get(),
-            shelflife=self.shelflife_var.get()
+            name=self.__name_var.get(),
+            nickname=self.__nickname_var.get(),
+            manufacturer=self.__manufacturer_var.get(),
+            description=self.__description_var.get(),
+            color=self.__color_var.get(),
+            comment=self.__comment_var.get(),
+            unit=self.__unit_var.get(),
+            packaging=self.__packaging_var.get(),
+            shelflife=self.__shelflife_var.get()
         )
 
     def populate(self, item:ItemRecord) -> None:
-        self.name_var.set(item.name)
-        self.nickname_var.set(item.nickname)
-        self.manufacturer_var.set(item.manufacturer)
-        self.description_var.set(item.description)
-        self.color_var.set(item.color)
-        self.comment_var.set(item.comment)
-        self.unit_var.set(item.unit)
-        self.packaging_var.set(item.packaging)
-        self.shelflife_var.set(item.shelflife)
-        self._name_entry["style"] = "okstyle.TEntry"
-        self._manufacturer_entry["style"] = "okstyle.TEntry"
-        self._unit_entry["style"] = "okstyle.TEntry"
-        self._shelflife_entry["style"] = "okstyle.TEntry"
+        self.__name_var.set(item.name)
+        self.__nickname_var.set(item.nickname)
+        self.__manufacturer_var.set(item.manufacturer)
+        self.__description_var.set(item.description)
+        self.__color_var.set(item.color)
+        self.__comment_var.set(item.comment)
+        self.__unit_var.set(item.unit)
+        self.__packaging_var.set(item.packaging)
+        self.__shelflife_var.set(item.shelflife)
+        self.__name_entry["style"] = "okstyle.TEntry"
+        self.__manufacturer_entry["style"] = "okstyle.TEntry"
+        self.__unit_entry["style"] = "okstyle.TEntry"
+        self.__shelflife_entry["style"] = "okstyle.TEntry"
 
     def disable(self) -> None:
         for child in self.winfo_children():
@@ -156,6 +156,10 @@ class ItemMask(LabelFrame):
         else:
             styles.apply_entry_error(self, name)
         return True
+    
+    @property
+    def unit(self) -> str:
+        return self.__unit_var.get()
 
 
 if __name__ == "__main__":
