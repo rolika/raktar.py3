@@ -2,6 +2,9 @@
 INVENTORY APPLICATION
 """
 
+import locale
+locale.setlocale(locale.LC_ALL, "")
+
 
 from sqlite3 import Cursor
 from scripts.databasesession import DatabaseSession
@@ -39,7 +42,7 @@ class InventoryApp():
 
     def load(self, source:Cursor) -> list[StockItemRecord]:
         return [StockItemRecord(**item) for item in source.fetchall()]
-    
+
     def show_selected(self, _) -> None:
         item = self._gui.itemlistbox.get_record()
         if item:
