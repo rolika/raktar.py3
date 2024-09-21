@@ -156,7 +156,7 @@ class ItemMask(LabelFrame):
         else:
             styles.apply_entry_error(self, name)
         return True
-    
+
     @property
     def unit(self) -> str:
         return self.__unit_var.get()
