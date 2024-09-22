@@ -51,7 +51,6 @@ class StockItemMask(LabelFrame):
                       validatecommand=(is_empty, "%P", "%W"))
         self.__name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX,
                                pady=PADY, columnspan=6)
-        self.__name_entry.focus()
 
         Label(item, text="Gyártó:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)

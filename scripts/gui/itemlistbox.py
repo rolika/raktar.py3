@@ -18,6 +18,7 @@ class ItemListbox(LabelFrame):
         self.__lookup_entry = ttk.Entry(self, textvariable=self.__lookup_var,
                                         validate="key")
         Label(self, bitmap="questhead").grid(row=0, column=1)
+        self.__lookup_entry.focus()
 
         vertical_scroll = Scrollbar(self, orient=VERTICAL)
         self.__listbox = Listbox(self,
