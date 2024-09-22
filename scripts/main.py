@@ -5,8 +5,9 @@ INVENTORY APPLICATION
 import locale
 locale.setlocale(locale.LC_ALL, "")
 
-
+import re
 from sqlite3 import Cursor
+
 from scripts.databasesession import DatabaseSession
 from scripts.filesession import FileSession
 from scripts.gui.gui import Gui
@@ -30,10 +31,13 @@ class InventoryApp():
         self._gui.itemlistbox.select_first()
         self._gui.mainloop()
 
-    def lookup(self, text:str) -> bool:
+    def lookup(self, term:str) -> bool:
         self._gui.itemlistbox.clear()
-        filtered = self._dbsession.lookup(text)
-        self._gui.itemlistbox.populate(self.load(filtered))
+        filtered = self.load(self._dbsession.select_all_items())
+        for word in re.split(r"\W+", term.lower()):
+            if word:
+                filtered = [item for item in filtered if item.identified(word)]
+        self._gui.itemlistbox.populate(filtered)
         try:
             self._gui.itemlistbox.select_first()
         except IndexError:  # no result, empty list
@@ -41,7 +45,7 @@ class InventoryApp():
         return True
 
     def load(self, source:Cursor) -> list[StockItemRecord]:
-        return [StockItemRecord(**item) for item in source.fetchall()]
+        return [StockItemRecord(**item) for item in source]
 
     def show_selected(self, _) -> None:
         item = self._gui.itemlistbox.get_record()
