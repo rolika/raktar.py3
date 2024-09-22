@@ -39,6 +39,9 @@ class StockItemRecord():
 
     def __bool__(self) -> bool:
         try:
+            bool(self.name) and\
+            bool(self.unit) #and\
+            #bool(self.manufacturer)
             stock = float(self.stock)
             unitprice = float(self.unitprice)
             #date.fromisoformat(self.productiondate)

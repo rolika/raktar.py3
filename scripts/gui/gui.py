@@ -3,7 +3,6 @@ from tkinter import *
 
 from scripts.gui.displaymask import DisplayMask
 from scripts.gui.itemlistbox import ItemListbox
-from scripts.gui.itemmask import ItemMask
 from scripts.gui.stockitemmask import StockItemMask
 from scripts.stockitemrecord import StockItemRecord
 
@@ -32,24 +31,20 @@ class Gui(Frame):
 
     def _build_interface(self):
         self.displaymask = DisplayMask()
-        self.itemmask = ItemMask()
         self.stockitemmask = StockItemMask()
         self.itemlistbox = ItemListbox()
         self.displaymask.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
-        self.itemmask.grid(row=1, column=0, padx=PADX, pady=PADY, sticky=E+W)
-        self.stockitemmask.grid(row=2, column=0, padx=PADX, pady=PADY,
+        self.stockitemmask.grid(row=1, column=0, padx=PADX, pady=PADY,
                                 sticky=E+W)
-        self.itemlistbox.grid(row=0, column=1, rowspan=3, padx=PADX, pady=PADY,
+        self.itemlistbox.grid(row=0, column=1, rowspan=2, padx=PADX, pady=PADY,
                            sticky=N+S)
 
     def _update_labels(self, _):
-        self.stockitemmask.unit = self.itemmask.unit
         self.stockitemmask.value = self.stockitemmask.retrieve().value
         self.displaymask.update_(self.itemlistbox.filter_var.get())
     
     def update_mask(self, item:StockItemRecord) -> None:
-        self.itemmask.populate(item)
-        self.stockitemmask.populate(item, item)
+        self.stockitemmask.populate(item)
         self._update_labels(1)
 
 
