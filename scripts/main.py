@@ -36,7 +36,7 @@ class InventoryApp():
         filtered = self.load(self._dbsession.select_all_items())
         for word in re.split(r"\W+", term.lower()):
             if word:
-                filtered = [item for item in filtered if item.identified(word)]
+                filtered = [item for item in filtered if item.contains(word)]
         self._gui.itemlistbox.populate(filtered)
         try:
             self._gui.itemlistbox.select_first()
@@ -51,7 +51,6 @@ class InventoryApp():
         item = self._gui.itemlistbox.get_record()
         if item:
             self._gui.update_mask(item)
-
 
 
 if __name__ == "__main__":

@@ -53,7 +53,7 @@ class StockItemRecord():
     def value(self) -> float:
         return float(self.stock) * float(self.unitprice) if bool(self) else 0
 
-    def identified(self, term:str) -> bool:
+    def contains(self, term:str) -> bool:
         for attribute in TRANSLATE_ATTRIBUTES.values():
             if term in str(getattr(self, attribute, None)).lower():
                 return True
