@@ -90,7 +90,7 @@ class DatabaseSession(sqlite3.Connection):
                     packaging:float,
                     place:str,
                     shelflife:float,
-                    manufacturing_date:str) -> None:
+                    productiondate:str) -> None:
         with self:
             self.execute("""
                 UPDATE raktar
@@ -119,7 +119,7 @@ class DatabaseSession(sqlite3.Connection):
                       packaging,
                       place,
                       shelflife,
-                      manufacturing_date,
+                      productiondate,
                       primary_key))
 
     def insert_item(self,
@@ -135,7 +135,7 @@ class DatabaseSession(sqlite3.Connection):
                     packaging:float,
                     place:str,
                     shelflife:float,
-                    manufacturing_date:str) -> None:
+                    productiondate:str) -> None:
         with self:
             self.execute("""
                 INSERT INTO raktar(keszlet,
@@ -167,7 +167,7 @@ class DatabaseSession(sqlite3.Connection):
                       packaging,
                       place,
                       shelflife,
-                      manufacturing_date))
+                      productiondate))
 
     def get_last_rowid(self) -> int:
         return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
