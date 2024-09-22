@@ -172,7 +172,7 @@ class DatabaseSession(sqlite3.Connection):
     def get_last_rowid(self) -> int:
         return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
 
-    def filter_for(self, term:str) -> sqlite3.Cursor:
+    def lookup(self, term:str) -> sqlite3.Cursor:
         return self.execute(f"""
 SELECT  cikkszam,
         CAST(keszlet AS REAL) AS keszlet,

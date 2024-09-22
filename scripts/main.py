@@ -23,7 +23,7 @@ class InventoryApp():
         self._dbsession = DatabaseSession(database)
         self._gui = Gui()
         lookup_ = self._gui.itemlistbox.register(self.lookup)
-        self._gui.itemlistbox.register_filter(lookup_)
+        self._gui.itemlistbox.register_lookup(lookup_)
         self._gui.itemlistbox.bind_selection(self.show_selected)
         all_items = self._dbsession.select_all_items()
         self._gui.itemlistbox.populate(self.load(all_items))
@@ -32,7 +32,7 @@ class InventoryApp():
 
     def lookup(self, text:str) -> bool:
         self._gui.itemlistbox.clear()
-        filtered = self._dbsession.filter_for(text)
+        filtered = self._dbsession.lookup(text)
         self._gui.itemlistbox.populate(self.load(filtered))
         try:
             self._gui.itemlistbox.select_first()

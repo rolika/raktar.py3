@@ -41,7 +41,7 @@ class Gui(Frame):
 
     def _update_labels(self, _):
         self.stockitemmask.value = self.stockitemmask.retrieve().value
-        self.displaymask.update_(self.itemlistbox.filter_var.get())
+        self.displaymask.lookup = self.itemlistbox.lookup
     
     def update_mask(self, item:StockItemRecord) -> None:
         self.stockitemmask.populate(item)
