@@ -6,7 +6,6 @@ from tkinter import *
 from tkinter import ttk
 
 from scripts.gui import styles
-from scripts.itemrecord import ItemRecord
 from scripts.stockitemrecord import StockItemRecord
 
 
@@ -16,7 +15,7 @@ PADX = 3
 PADY = 3
 
 
-class StockItemMask(LabelFrame):
+class StockItemForm(LabelFrame):
     def __init__(self):
         super().__init__(text="Raktári tétel")
         self._init_controll_variables()

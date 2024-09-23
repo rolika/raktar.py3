@@ -1,9 +1,9 @@
 import os
 from tkinter import *
 
-from scripts.gui.displaymask import DisplayMask
+from scripts.gui.selectiondisplay import SelectionDisplay
 from scripts.gui.itemlistbox import ItemListbox
-from scripts.gui.stockitemmask import StockItemMask
+from scripts.gui.stockitemform import StockItemForm
 from scripts.stockitemrecord import StockItemRecord
 
 
@@ -30,8 +30,8 @@ class Gui(Frame):
         self.grid(padx=PADX, pady=PADY)
 
     def _build_interface(self):
-        self.displaymask = DisplayMask()
-        self.stockitemmask = StockItemMask()
+        self.displaymask = SelectionDisplay()
+        self.stockitemmask = StockItemForm()
         self.itemlistbox = ItemListbox()
         self.displaymask.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
         self.stockitemmask.grid(row=1, column=0, padx=PADX, pady=PADY,

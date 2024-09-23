@@ -1,5 +1,4 @@
 from tkinter import *
-from tkinter import ttk
 
 
 MID_FIELD = 16
@@ -9,7 +8,7 @@ PADY = 3
 ALL_SELECTED = "teljes raktár"
 
 
-class DisplayMask(LabelFrame):
+class SelectionDisplay(LabelFrame):
     def __init__(self):
         super().__init__(text="Kiválasztás")
         self._init_controll_variables()
