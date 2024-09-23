@@ -1,5 +1,7 @@
-from datetime import date
 import locale
+locale.setlocale(locale.LC_ALL, "")
+
+from datetime import date
 from tkinter import *
 from tkinter import ttk
 
@@ -164,7 +166,7 @@ class StockItemMask(LabelFrame):
 
     def _is_number(self, text:str, name:str) -> bool:
         try:
-            number = float(text)
+            number = locale.atof(text)
             if number >= 0:
                 styles.apply_entry_ok(self, name)
         except ValueError:
@@ -197,8 +199,8 @@ class StockItemMask(LabelFrame):
             unit=self.__unit_var.get(),
             packaging=self.__packaging_var.get(),
             shelflife=self.__shelflife_var.get(),
-            stock=self.__stock_var.get(),
-            unitprice=self.__unitprice_var.get(),
+            stock=locale.atof(self.__stock_var.get()),
+            unitprice=locale.atof(self.__unitprice_var.get()),
             place=self.__place_var.get(),
             productiondate=self.__productiondate_var.get()
         )
@@ -211,10 +213,16 @@ class StockItemMask(LabelFrame):
         self.__color_var.set(stockitem.color)
         self.__comment_var.set(stockitem.comment)
         self.__unit_var.set(stockitem.unit)
-        self.__packaging_var.set(stockitem.packaging)
+        packaging = locale.format_string(f="%.2f", val=stockitem.packaging,
+                                         grouping=True)
+        self.__packaging_var.set(packaging)
         self.__shelflife_var.set(stockitem.shelflife)
-        self.__stock_var.set(stockitem.stock)
-        self.__unitprice_var.set(stockitem.unitprice)
+        stock = locale.format_string(f="%.2f", val=stockitem.stock,
+                                     grouping=True)
+        self.__stock_var.set(stock)
+        unitprice = locale.format_string(f="%.2f", val=stockitem.unitprice,
+                                         grouping=True)
+        self.__unitprice_var.set(unitprice)
         self.__place_var.set(stockitem.place)
         self.__productiondate_var.set(stockitem.productiondate)
         self.__name_entry["style"] = "okstyle.TEntry"

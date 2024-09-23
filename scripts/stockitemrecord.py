@@ -1,5 +1,7 @@
-from datetime import date
 import locale
+locale.setlocale(locale.LC_ALL, "")
+
+from datetime import date
 
 
 TRANSLATE_ATTRIBUTES = {
