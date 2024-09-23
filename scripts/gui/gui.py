@@ -30,21 +30,22 @@ class Gui(Frame):
         self.grid(padx=PADX, pady=PADY)
 
     def _build_interface(self):
-        self.displaymask = SelectionDisplay()
+        self.selectiondisplay = SelectionDisplay()
         self.stockitemmask = StockItemForm()
         self.itemlistbox = ItemListbox()
-        self.displaymask.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
+        self.selectiondisplay.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
         self.stockitemmask.grid(row=1, column=0, padx=PADX, pady=PADY,
                                 sticky=E+W)
         self.itemlistbox.grid(row=0, column=1, rowspan=2, padx=PADX, pady=PADY,
                            sticky=N+S)
 
     def _update_labels(self, _):
-        self.stockitemmask.value = self.stockitemmask.retrieve().value
-        self.displaymask.lookup = self.itemlistbox.lookup
+        self.stockitemmask.value = float(self.stockitemmask.retrieve())
+        self.selectiondisplay.lookup = self.itemlistbox.lookup
     
-    def update_mask(self, item:StockItemRecord) -> None:
+    def update_mask(self, item:StockItemRecord, value:float) -> None:
         self.stockitemmask.populate(item)
+        self.selectiondisplay.selectionvalue = value
         self._update_labels(1)
 
 
@@ -52,7 +53,6 @@ if __name__ == "__main__":
     import locale
     locale.setlocale(locale.LC_ALL, "")
     gui = Gui()
-    gui.displaymask.update_(1, "valami", 8912234.35)
     test_list = [str(i) for i in range(50)]
     gui.itemlistbox.populate(test_list)
     gui.mainloop()

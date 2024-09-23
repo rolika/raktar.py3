@@ -15,7 +15,6 @@ class SelectionDisplay(LabelFrame):
         self._build_interface()
 
     def _init_controll_variables(self) -> None:
-        self.__articlenumber_var = StringVar()
         self.__lookup_var = StringVar()
         self.__selectionvalue_var = StringVar()
 
@@ -42,3 +41,11 @@ class SelectionDisplay(LabelFrame):
         else:
             value = ALL_SELECTED
         self.__lookup_var.set(value)
+    
+    @property
+    def selectionvalue(self) -> str:
+        return self.__selectionvalue_var.get()
+    
+    @selectionvalue.setter
+    def selectionvalue(self, value:float) -> None:
+        self.__selectionvalue_var.set(value)

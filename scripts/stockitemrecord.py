@@ -51,9 +51,8 @@ class StockItemRecord():
         except (AttributeError, ValueError):
             return False
 
-    @property
-    def value(self) -> float:
-        return float(self.stock) * float(self.unitprice) if bool(self) else 0
+    def __float__(self) -> float:
+        return float(self.stock) * float(self.unitprice) if bool(self) else 0.0
 
     def contains(self, term:str) -> bool:
         for attribute in TRANSLATE_ATTRIBUTES.values():

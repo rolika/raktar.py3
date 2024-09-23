@@ -21,25 +21,27 @@ DATABASE = "data/adatok.db"
 
 class InventoryApp():
     def __init__(self, database:str=DATABASE) -> None:
-        self._dbsession = DatabaseSession(database)
-        self._gui = Gui()
-        lookup_ = self._gui.itemlistbox.register(self.lookup)
-        self._gui.itemlistbox.register_lookup(lookup_)
-        self._gui.itemlistbox.bind_selection(self.show_selected)
-        all_items = self._dbsession.select_all_items()
-        self._gui.itemlistbox.populate(self.load(all_items))
-        self._gui.itemlistbox.select_first()
-        self._gui.mainloop()
+        self.__dbsession = DatabaseSession(database)
+        self.__gui = Gui()
+        lookup_ = self.__gui.itemlistbox.register(self.lookup)
+        self.__gui.itemlistbox.register_lookup(lookup_)
+        self.__gui.itemlistbox.bind_selection(self.show_selected)
+        all_items = self.__dbsession.select_all_items()
+        self.__selectionvalue = 0
+        self.__gui.itemlistbox.populate(self.load(all_items))
+        self.__gui.itemlistbox.select_first()
+        self.__gui.mainloop()
 
     def lookup(self, term:str) -> bool:
-        self._gui.itemlistbox.clear()
-        filtered = self.load(self._dbsession.select_all_items())
+        self.__gui.itemlistbox.clear()
+        selection = self.load(self.__dbsession.select_all_items())
         for word in re.split(r"\W+", term.lower()):
             if word:
-                filtered = [item for item in filtered if item.contains(word)]
-        self._gui.itemlistbox.populate(filtered)
+                selection = [item for item in selection if item.contains(word)]
+        self.__gui.itemlistbox.populate(selection)
+        self.__selectionvalue = sum(map(float, selection))
         try:
-            self._gui.itemlistbox.select_first()
+            self.__gui.itemlistbox.select_first()
         except IndexError:  # no result, empty list
             pass
         return True
@@ -48,9 +50,9 @@ class InventoryApp():
         return [StockItemRecord(**item) for item in source]
 
     def show_selected(self, _) -> None:
-        item = self._gui.itemlistbox.get_record()
+        item = self.__gui.itemlistbox.get_record()
         if item:
-            self._gui.update_mask(item)
+            self.__gui.update_mask(item, self.__selectionvalue)
 
 
 if __name__ == "__main__":
