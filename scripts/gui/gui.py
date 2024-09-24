@@ -32,7 +32,7 @@ class Gui(Frame):
         self.stockitemform = StockItemForm()
         self.itemlistbox = ItemListbox()
         self.stockitemform.grid(row=0, column=0, padx=PADX, pady=PADY,
-                                sticky=E+W)
+                                sticky=N+E+W)
         self.itemlistbox.grid(row=0, column=1, padx=PADX, pady=PADY,
                               sticky=N+S)
 

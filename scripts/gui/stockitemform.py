@@ -108,8 +108,6 @@ class StockItemForm(LabelFrame):
         Label(item, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
 
-        item.grid(row=0, column=0)
-
         stockitem = Frame(self)
 
         Label(stockitem, text="Készlet:")\
@@ -119,7 +117,7 @@ class StockItemForm(LabelFrame):
                       textvariable=self.__stock_var, validate="all",
                       validatecommand=(is_number, "%P", "%W"))
         self.__stock_entry.grid(row=0, column=1, padx=PADX, pady=PADY)
-        Label(stockitem, textvariable=self.__unit_var)\
+        Label(stockitem, textvariable=self.__unit_var, width=7)\
             .grid(row=0, column=2, sticky=W, padx=PADX, pady=PADY)
         Label(stockitem, text="Egységár:")\
             .grid(row=0, column=3, sticky=W, padx=PADX, pady=PADY)
@@ -130,7 +128,7 @@ class StockItemForm(LabelFrame):
         self.__unitprice_entry.grid(row=0, column=4, padx=PADX, pady=PADY)
         Label(stockitem, text="Ft /")\
             .grid(row=0, column=5, sticky=E, padx=PADX, pady=PADY)
-        Label(stockitem, textvariable=self.__unit_var)\
+        Label(stockitem, textvariable=self.__unit_var, width=7)\
             .grid(row=0, column=6, sticky=W, padx=PADX, pady=PADY)
 
         Label(stockitem, text="Hely/projekt:")\
@@ -154,14 +152,15 @@ class StockItemForm(LabelFrame):
         Label(stockitem, textvariable=self.__value_var)\
             .grid(row=2, column=1, sticky=E, padx=PADX, pady=PADY)
 
-        stockitem.grid(row=1, column=0)
-
         self.__packaging_var.set("0")
         self.__shelflife_var.set("12")
         self.__unitprice_var.set("0")
         self.__stock_var.set("0")
         self.__value_var.set("0")
         self.__productiondate_var.set(date.today().isoformat())
+
+        item.grid(row=0, column=0, sticky=E+W)
+        stockitem.grid(row=1, column=0, sticky=E+W)
 
     def _is_number(self, text:str, name:str) -> bool:
         try:
