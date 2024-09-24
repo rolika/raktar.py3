@@ -26,27 +26,18 @@ class Gui(Frame):
             self.master.iconbitmap(default = WINDOWS_ICON)
         self.master.title(PROGRAM + " v" + version)
         self._build_interface()
-        self.bind_all("<KeyPress>", self._update_labels)
         self.grid(padx=PADX, pady=PADY)
 
     def _build_interface(self):
-        self.selectiondisplay = SelectionDisplay()
-        self.stockitemmask = StockItemForm()
+        self.stockitemform = StockItemForm()
         self.itemlistbox = ItemListbox()
-        self.selectiondisplay.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=E+W)
-        self.stockitemmask.grid(row=1, column=0, padx=PADX, pady=PADY,
+        self.stockitemform.grid(row=0, column=0, padx=PADX, pady=PADY,
                                 sticky=E+W)
-        self.itemlistbox.grid(row=0, column=1, rowspan=2, padx=PADX, pady=PADY,
-                           sticky=N+S)
+        self.itemlistbox.grid(row=0, column=1, padx=PADX, pady=PADY,
+                              sticky=N+S)
 
-    def _update_labels(self, _):
-        self.stockitemmask.value = float(self.stockitemmask.retrieve())
-        self.selectiondisplay.lookup = self.itemlistbox.lookup
-    
-    def update_mask(self, item:StockItemRecord, value:float) -> None:
-        self.stockitemmask.populate(item)
-        self.selectiondisplay.selectionvalue = value
-        self._update_labels(1)
+    def update_form(self, item:StockItemRecord) -> None:
+        self.stockitemform.populate(item)
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@ class StockItemForm(LabelFrame):
         is_empty = self.register(self._is_empty)
 
         item = Frame(self)
-        
+
         Label(item, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         self.__name_entry =\
@@ -107,7 +107,7 @@ class StockItemForm(LabelFrame):
                                    padx=PADX, pady=PADY)
         Label(item, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
-        
+
         item.grid(row=0, column=0)
 
         stockitem = Frame(self)
@@ -153,7 +153,7 @@ class StockItemForm(LabelFrame):
             .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
         Label(stockitem, textvariable=self.__value_var)\
             .grid(row=2, column=1, sticky=E, padx=PADX, pady=PADY)
-        
+
         stockitem.grid(row=1, column=0)
 
         self.__packaging_var.set("0")
@@ -224,6 +224,8 @@ class StockItemForm(LabelFrame):
         self.__unitprice_var.set(unitprice)
         self.__place_var.set(stockitem.place)
         self.__productiondate_var.set(stockitem.productiondate)
+        self.__value_var.set(\
+            f"{locale.currency(val=float(stockitem), grouping=True)}")
         self.__name_entry["style"] = "okstyle.TEntry"
         self.__manufacturer_entry["style"] = "okstyle.TEntry"
         self.__unit_entry["style"] = "okstyle.TEntry"
@@ -234,19 +236,3 @@ class StockItemForm(LabelFrame):
 
     def is_valid(self) -> bool:
         return styles.is_entry_ok(self)
-
-    @property
-    def unit(self) -> str:
-        return self.__unit_var.get()
-
-    @unit.setter
-    def unit(self, value:str) -> None:
-        self.__unit_var.set(value)
-
-    @property
-    def value(self) -> str:
-        return self.__value_var.get()
-
-    @value.setter
-    def value(self, value_:float) -> None:
-        self.__value_var.set(f"{locale.currency(val=value_, grouping=True)}")

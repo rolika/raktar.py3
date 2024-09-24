@@ -27,7 +27,6 @@ class InventoryApp():
         self.__gui.itemlistbox.register_lookup(lookup_)
         self.__gui.itemlistbox.bind_selection(self.show_selected)
         all_items = self.__dbsession.select_all_items()
-        self.__selectionvalue = 0
         self.__gui.itemlistbox.populate(self.load(all_items))
         self.__gui.itemlistbox.select_first()
         self.__gui.mainloop()
@@ -39,7 +38,6 @@ class InventoryApp():
             if word:
                 selection = [item for item in selection if item.contains(word)]
         self.__gui.itemlistbox.populate(selection)
-        self.__selectionvalue = sum(map(float, selection))
         try:
             self.__gui.itemlistbox.select_first()
         except IndexError:  # no result, empty list
@@ -52,7 +50,7 @@ class InventoryApp():
     def show_selected(self, _) -> None:
         item = self.__gui.itemlistbox.get_record()
         if item:
-            self.__gui.update_mask(item, self.__selectionvalue)
+            self.__gui.update_form(item)
 
 
 if __name__ == "__main__":
