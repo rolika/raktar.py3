@@ -9,7 +9,7 @@ from scripts.gui import styles
 from scripts.stockitemrecord import StockItemRecord
 
 
-SHORT_FIELD = 8
+SHORT_FIELD = 9
 MID_FIELD = 16
 PADX = 3
 PADY = 3
@@ -42,115 +42,112 @@ class StockItemForm(LabelFrame):
         is_date = self.register(self._is_date)
         is_empty = self.register(self._is_empty)
 
-        item = Frame(self)
-
-        Label(item, text="Megnevezés:")\
+        Label(self, text="Megnevezés:")\
             .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
         self.__name_entry =\
-            ttk.Entry(item, justify=LEFT, textvariable=self.__name_var,
+            ttk.Entry(self, justify=LEFT, textvariable=self.__name_var,
                       name="name", validate="all",
                       validatecommand=(is_empty, "%P", "%W"))
         self.__name_entry.grid(row=0, column=1, sticky=E+W, padx=PADX,
                                pady=PADY, columnspan=6)
 
-        Label(item, text="Gyártó:")\
+        Label(self, text="Gyártó:")\
             .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
         self.__manufacturer_entry =\
-            ttk.Entry(item, justify=LEFT, textvariable=self.__manufacturer_var,
+            ttk.Entry(self, justify=LEFT, textvariable=self.__manufacturer_var,
                       name="manufacturer", validate="all",
                       validatecommand=(is_empty, "%P", "%W"))
         self.__manufacturer_entry.grid(row=1, column=1, sticky=E+W, padx=PADX,
                                       pady=PADY, columnspan=3)
-        Label(item, text="Becenév:")\
+        Label(self, text="Becenév:")\
             .grid(row=1, column=4, sticky=E, padx=PADX, pady=PADY)
-        ttk.Entry(item, justify=LEFT, textvariable=self.__nickname_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__nickname_var)\
             .grid(row=1, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
-        Label(item, text="Leírás:")\
+        Label(self, text="Leírás:")\
             .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(item, justify=LEFT, textvariable=self.__description_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__description_var)\
             .grid(row=2, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=6)
 
-        Label(item, text="Megjegyzés:")\
+        Label(self, text="Megjegyzés:")\
             .grid(row=3, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(item, justify=LEFT, textvariable=self.__comment_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__comment_var)\
             .grid(row=3, column=1, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=3)
-        Label(item, text="Szín:")\
+        Label(self, text="Szín:")\
             .grid(row=3, column=4, sticky=E, padx=PADX, pady=PADY)
-        ttk.Entry(item, justify=LEFT, textvariable=self.__color_var)\
+        ttk.Entry(self, justify=LEFT, textvariable=self.__color_var)\
             .grid(row=3, column=5, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
-        Label(item, text="Kiszerelés:")\
+        Label(self, text="Kiszerelés:")\
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(item, width=SHORT_FIELD, justify=RIGHT,
+        ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
                   textvariable=self.__packaging_var, name="packaging",
                   validate="all", validatecommand=(is_number, "%P", "%W"))\
                     .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
         self.__unit_entry =\
-            ttk.Entry(item, width=SHORT_FIELD, justify=LEFT,
+            ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
                       textvariable=self.__unit_var, name="unit", validate="all",
                       validatecommand=(is_empty, "%P", "%W"))
         self.__unit_entry.grid(row=4, column=2, sticky=E, padx=PADX, pady=PADY)
-        Label(item, text="egység")\
-            .grid(row=4, column=3, sticky=E, padx=PADX, pady=PADY)
-        Label(item, text="Eltartható:")\
+        Label(self, text="egység", anchor=W)\
+            .grid(row=4, column=3, sticky=E+W, padx=PADX, pady=PADY)
+        Label(self, text="Eltartható:")\
             .grid(row=4, column=4, sticky=E, padx=PADX, pady=PADY)
         self.__shelflife_entry =\
-            ttk.Entry(item, width=MID_FIELD, justify=RIGHT,
+            ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
                       textvariable=self.__shelflife_var, name="shelflife",
                       validate="all", validatecommand=(is_number, "%P", "%W"))
         self.__shelflife_entry.grid(row=4, column=5, sticky=W,
                                    padx=PADX, pady=PADY)
-        Label(item, text="hónap")\
+        Label(self, text="hónap")\
             .grid(row=4, column=6, padx=PADX, pady=PADY)
 
-        stockitem = Frame(self)
-
-        Label(stockitem, text="Készlet:")\
-            .grid(row=0, column=0, sticky=W, padx=PADX, pady=PADY)
+        Label(self, text="Készlet:")\
+            .grid(row=5, column=0, sticky=W, padx=PADX, pady=PADY)
         self.__stock_entry =\
-            ttk.Entry(stockitem, justify=RIGHT, width=MID_FIELD,
+            ttk.Entry(self, justify=RIGHT, width=MID_FIELD,
                       textvariable=self.__stock_var, validate="all",
                       validatecommand=(is_number, "%P", "%W"))
-        self.__stock_entry.grid(row=0, column=1, padx=PADX, pady=PADY)
-        Label(stockitem, textvariable=self.__unit_var, width=7)\
-            .grid(row=0, column=2, sticky=W, padx=PADX, pady=PADY)
-        Label(stockitem, text="Egységár:")\
-            .grid(row=0, column=3, sticky=W, padx=PADX, pady=PADY)
+        self.__stock_entry.grid(row=5, column=1, padx=PADX, pady=PADY,
+                                columnspan=2, sticky=E+W)
+        Label(self, textvariable=self.__unit_var, width=7, anchor=W)\
+            .grid(row=5, column=3, sticky=E+W, padx=PADX, pady=PADY)
+        Label(self, text="Egységár:")\
+            .grid(row=5, column=4, sticky=W, padx=PADX, pady=PADY)
         self.__unitprice_entry =\
-            ttk.Entry(stockitem, justify=RIGHT, width=MID_FIELD,
+            ttk.Entry(self, justify=RIGHT, width=SHORT_FIELD,
                       textvariable=self.__unitprice_var, validate="all",
                       validatecommand=(is_number, "%P", "%W"))
-        self.__unitprice_entry.grid(row=0, column=4, padx=PADX, pady=PADY)
-        Label(stockitem, text="Ft /")\
-            .grid(row=0, column=5, sticky=E, padx=PADX, pady=PADY)
-        Label(stockitem, textvariable=self.__unit_var, width=7)\
-            .grid(row=0, column=6, sticky=W, padx=PADX, pady=PADY)
+        self.__unitprice_entry.grid(row=5, column=5, padx=PADX, pady=PADY)
+        Label(self, text="Ft /")\
+            .grid(row=5, column=6, sticky=E, padx=PADX, pady=PADY)
+        Label(self, textvariable=self.__unit_var, width=7)\
+            .grid(row=5, column=7, sticky=W, padx=PADX, pady=PADY)
 
-        Label(stockitem, text="Hely/projekt:")\
-            .grid(row=1, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(stockitem, justify=LEFT, width=MID_FIELD,
+        Label(self, text="Hely/projekt:")\
+            .grid(row=6, column=0, sticky=W, padx=PADX, pady=PADY)
+        ttk.Entry(self, justify=LEFT, width=MID_FIELD,
                   textvariable=self.__place_var)\
-            .grid(row=1, column=1, padx=PADX, pady=PADY)
-        Label(stockitem, text="Gyártási idő:")\
-            .grid(row=1, column=3, sticky=W, padx=PADX, pady=PADY)
+            .grid(row=6, column=1, padx=PADX, pady=PADY, columnspan=2,
+                  sticky=E+W)
+        Label(self, text="Gyártási idő:")\
+            .grid(row=6, column=4, sticky=W, padx=PADX, pady=PADY)
         self.__productiondate_entry =\
-            ttk.Entry(stockitem, justify=RIGHT, width=MID_FIELD,
+            ttk.Entry(self, justify=RIGHT, width=SHORT_FIELD,
                       textvariable=self.__productiondate_var, validate="all",
                       validatecommand=(is_date, "%P", "%W"))
-        self.__productiondate_entry.grid(row=1, column=4, padx=PADX, pady=PADY)
-        Label(stockitem, text="(éééé-hh-nn)")\
-            .grid(row=1, column=5, sticky=W, padx=PADX, pady=PADY,
-                  columnspan=2)
+        self.__productiondate_entry.grid(row=6, column=5, padx=PADX, pady=PADY)
+        Label(self, text="(éééé-hh-nn)")\
+            .grid(row=6, column=6, sticky=W, padx=PADX, pady=PADY)
 
-        Label(stockitem, text="Érték:")\
-            .grid(row=2, column=0, sticky=W, padx=PADX, pady=PADY)
-        Label(stockitem, textvariable=self.__value_var)\
-            .grid(row=2, column=1, sticky=E, padx=PADX, pady=PADY)
+        # Label(self, text="Érték:")\
+        #     .grid(row=7, column=0, sticky=W, padx=PADX, pady=PADY)
+        # Label(self, textvariable=self.__value_var)\
+        #     .grid(row=7, column=1, sticky=E, padx=PADX, pady=PADY)
 
         self.__packaging_var.set("0")
         self.__shelflife_var.set("12")
@@ -158,9 +155,6 @@ class StockItemForm(LabelFrame):
         self.__stock_var.set("0")
         self.__value_var.set("0")
         self.__productiondate_var.set(date.today().isoformat())
-
-        item.grid(row=0, column=0, sticky=E+W)
-        stockitem.grid(row=1, column=0, sticky=E+W)
 
     def _is_number(self, text:str, name:str) -> bool:
         try:
