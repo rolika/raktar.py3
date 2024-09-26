@@ -39,6 +39,7 @@ class Gui(Frame):
         self.controldevice = ControlDevice()
         self.controldevice.grid(row=1, column=0, padx=PADX, pady=PADY,
                                 sticky=E+W+N+S)
+        self.controldevice.set_newitem_command(self.stockitemform.clear)
 
     def update_form(self, item:StockItemRecord) -> None:
         self.stockitemform.populate(item)

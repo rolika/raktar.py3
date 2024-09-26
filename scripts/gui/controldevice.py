@@ -14,7 +14,7 @@ class ControlDevice(LabelFrame):
     def _build_interface(self) -> None:
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
-        
+
         item = LabelFrame(self, text="Tétel")
         self.__newitem_button = ttk.Button(item, text="Új")
         self.__saveitem_button = ttk.Button(item, text="Mentés")
@@ -31,4 +31,6 @@ class ControlDevice(LabelFrame):
 
         item.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=W+N+S)
         waybill.grid(row=0, column=1, padx=PADX, pady=PADY, sticky=E+N+S)
-        
+    
+    def set_newitem_command(self, newitem_func:callable) -> None:
+        self.__newitem_button["command"] = newitem_func

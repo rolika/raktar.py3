@@ -83,10 +83,12 @@ class StockItemForm(LabelFrame):
 
         Label(self, text="Kiszerelés:")\
             .grid(row=4, column=0, sticky=W, padx=PADX, pady=PADY)
-        ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
-                  textvariable=self.__packaging_var, name="packaging",
-                  validate="all", validatecommand=(is_number, "%P", "%W"))\
-                    .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
+        self.__packaging_entry =\
+            ttk.Entry(self, width=SHORT_FIELD, justify=RIGHT,
+                      textvariable=self.__packaging_var, name="packaging",
+                      validate="all", validatecommand=(is_number, "%P", "%W"))
+        self.__packaging_entry\
+            .grid(row=4, column=1, sticky=W, padx=PADX, pady=PADY)
         self.__unit_entry =\
             ttk.Entry(self, width=SHORT_FIELD, justify=LEFT,
                       textvariable=self.__unit_var, name="unit", validate="all",
@@ -145,11 +147,7 @@ class StockItemForm(LabelFrame):
             .grid(row=6, column=6, sticky=E+W, padx=PADX, pady=PADY,
                   columnspan=2)
 
-        self.__packaging_var.set("0")
-        self.__shelflife_var.set("12")
-        self.__unitprice_var.set("0")
-        self.__stock_var.set("0")
-        self.__productiondate_var.set(date.today().isoformat())
+        self._set_default_values()
 
     def _is_number(self, text:str, name:str) -> bool:
         try:
@@ -222,3 +220,19 @@ class StockItemForm(LabelFrame):
 
     def is_valid(self) -> bool:
         return styles.is_entry_ok(self)
+    
+    def clear(self) -> None:
+        for child in self.winfo_children():
+            if child.winfo_class() == "TEntry":
+                child.delete(0, END)
+        self._set_default_values()
+        self.__name_entry["style"] = "errorstyle.TEntry"
+        self.__manufacturer_entry["style"] = "errorstyle.TEntry"
+        self.__unit_entry["style"] = "errorstyle.TEntry"
+        self.__packaging_entry["style"] = "errorstyle.TEntry"
+        self.__stock_entry["style"] = "errorstyle.TEntry"
+        self.__unitprice_entry["style"] = "errorstyle.TEntry"
+    
+    def _set_default_values(self) -> None:
+        self.__shelflife_var.set("60")
+        self.__productiondate_var.set(date.today().isoformat())
