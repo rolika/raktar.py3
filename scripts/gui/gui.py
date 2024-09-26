@@ -1,6 +1,7 @@
 import os
 from tkinter import *
 
+from scripts.gui.controldevice import ControlDevice
 from scripts.gui.selectiondisplay import SelectionDisplay
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.gui.stockitemform import StockItemForm
@@ -34,7 +35,10 @@ class Gui(Frame):
         self.stockitemform.grid(row=0, column=0, padx=PADX, pady=PADY,
                                 sticky=N+E+W)
         self.itemlistbox.grid(row=0, column=1, padx=PADX, pady=PADY,
-                              sticky=N+S)
+                              sticky=N+S, rowspan=2)
+        self.controldevice = ControlDevice()
+        self.controldevice.grid(row=1, column=0, padx=PADX, pady=PADY,
+                                sticky=E+W+N+S)
 
     def update_form(self, item:StockItemRecord) -> None:
         self.stockitemform.populate(item)
