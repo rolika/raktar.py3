@@ -7,6 +7,8 @@ from scripts.stockitemrecord import StockItemRecord
 class ItemListbox(LabelFrame):
     def __init__(self, title="Raktárkészlet") -> None:
         super().__init__(text=title)
+        self.__selected_item = None
+        self.__item_list = None
         self._init_controll_variables()
         self._build_interface()
 
@@ -43,12 +45,15 @@ class ItemListbox(LabelFrame):
         vertical_scroll.grid(row=1, column=1, sticky=N+S)
 
     def populate(self, item_list:list) -> None:
-        self._item_list = item_list
+        self.__item_list = item_list
         for item in item_list:
             self.__listbox.insert(END, str(item))
 
-    def clear(self) -> None:
+    def clear_listbox(self) -> None:
         self.__listbox.delete(0, END)
+    
+    def clear_entry(self) -> None:
+        self.__lookup_var.set("")
 
     def register_lookup(self, reference:str) -> None:
         self.__lookup_entry["validatecommand"] = (reference, "%P")
@@ -58,17 +63,23 @@ class ItemListbox(LabelFrame):
     
     def get_record(self) -> StockItemRecord:
         try:
-            return self._item_list[self.__listbox.curselection()[0]]
+            self.__selected_item =\
+                self.__item_list[self.__listbox.curselection()[0]]
+            return self.__selected_item
         except IndexError:  # empty list
             return None
     
-    def select_first(self) -> None:
-        self.__listbox.selection_set(0)
+    def select_index(self, idx:int) -> None:
+        self.__listbox.selection_set(idx)
         self.__listbox.event_generate("<<ListboxSelect>>")
     
     @property
     def lookup(self) -> str:
         return self.__lookup_var.get()
+    
+    @property
+    def selected_item(self) -> StockItemRecord:
+        return self.__selected_item
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import os
 from tkinter import *
+from tkinter import messagebox
 
 from scripts.gui.controldevice import ControlDevice
 from scripts.gui.selectiondisplay import SelectionDisplay
@@ -43,6 +44,25 @@ class Gui(Frame):
 
     def update_form(self, item:StockItemRecord) -> None:
         self.stockitemform.populate(item)
+    
+    def check_item(self) -> StockItemRecord|None:
+        """Before updating the database record, check if the form is valid,
+        warn the user if the stock has changed, and only after that write the
+        changes."""
+        if self.stockitemform.is_valid():
+            original_item = self.itemlistbox.selected_item
+            updated_item = self.stockitemform.retrieve()
+            if original_item and updated_item.articlenumber and\
+                original_item.stock != updated_item.stock:
+                if messagebox.askokcancel(title="Vigyázz!",
+                                          message="Felülírod a készletet?"):
+                    return updated_item  # update
+            else:
+                return updated_item  # insert
+        else:
+            messagebox.showwarning(title="Hiányos adatok!",
+                                   message="A piros mezőket töltsd ki!")
+        return None
 
 
 if __name__ == "__main__":
