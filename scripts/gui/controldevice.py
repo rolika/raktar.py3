@@ -32,5 +32,8 @@ class ControlDevice(LabelFrame):
         item.grid(row=0, column=0, padx=PADX, pady=PADY, sticky=W+N+S)
         waybill.grid(row=0, column=1, padx=PADX, pady=PADY, sticky=E+N+S)
     
-    def set_newitem_command(self, newitem_func:callable) -> None:
-        self.__newitem_button["command"] = newitem_func
+    def set_newitem_command(self, func:callable) -> None:
+        self.__newitem_button["command"] = func
+    
+    def set_saveitem_command(self, func:callable) -> None:
+        self.__saveitem_button["command"] = func
