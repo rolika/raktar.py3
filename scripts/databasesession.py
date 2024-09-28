@@ -1,6 +1,9 @@
 import pathlib
 import sqlite3
 
+from scripts.stockitemrecord import StockItemRecord
+
+
 LOG_COLUMNS = "megnevezes, egysegar, egyseg, valtozas, datum, projektszam"
 
 
@@ -76,126 +79,33 @@ class DatabaseSession(sqlite3.Connection):
             self.execute("""UPDATE raktar
                             SET keszlet = ?, utolso_modositas = date()
                             WHERE cikkszam = ?;""", (quantity, primary_key))
-
-    def update_item(self,
-                    primary_key:int,
-                    name:str,
-                    nickname:str,
-                    manufacturer:str,
-                    description:str,
-                    color:str,
-                    comment:str,
-                    unit:str,
-                    unitprice:float,
-                    packaging:float,
-                    place:str,
-                    shelflife:float,
-                    productiondate:str) -> None:
-        with self:
-            self.execute("""
-                UPDATE raktar
-                SET megnevezes = ?,
-                    becenev = ?,
-                    gyarto = ?,
-                    leiras = ?,
-                    szin = ?,
-                    megjegyzes = ?,
-                    egyseg = ?,
-                    egysegar = ?,
-                    kiszereles = ?,
-                    hely = ?,
-                    lejarat = ?,
-                    gyartasido = ?,
-                    utolso_modositas = date()
-                WHERE cikkszam = ?;
-                """, (name,
-                      nickname,
-                      manufacturer,
-                      description,
-                      color,
-                      comment,
-                      unit,
-                      unitprice,
-                      packaging,
-                      place,
-                      shelflife,
-                      productiondate,
-                      primary_key))
-
-    def insert_item(self,
-                    stock:float,
-                    name:str,
-                    nickname:str,
-                    manufacturer:str,
-                    description:str,
-                    color:str,
-                    comment:str,
-                    unit:str,
-                    unitprice:float,
-                    packaging:float,
-                    place:str,
-                    shelflife:float,
-                    productiondate:str) -> None:
-        with self:
-            self.execute("""
-                INSERT INTO raktar(keszlet,
-                                   megnevezes,
-                                   becenev,
-                                   gyarto,
-                                   leiras,
-                                   szin,
-                                   megjegyzes,
-                                   egyseg,
-                                   egysegar,
-                                   kiszereles,
-                                   hely,
-                                   lejarat,
-                                   gyartasido,
-                                   letrehozas,
-                                   utolso_modositas)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                        date(), date())
-                """, (stock,
-                      name,
-                      nickname,
-                      manufacturer,
-                      description,
-                      color,
-                      comment,
-                      unit,
-                      unitprice,
-                      packaging,
-                      place,
-                      shelflife,
-                      productiondate))
-
-    def get_last_rowid(self) -> int:
-        return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
-
-    def lookup(self, term:str) -> sqlite3.Cursor:
-        return self.execute(f"""
-SELECT  cikkszam,
-        CAST(keszlet AS REAL) AS keszlet,
-        megnevezes,
-        becenev,
-        gyarto,
-        leiras,
-        megjegyzes,
-        egyseg,
-        CAST(egysegar AS INT) AS egysegar,
-        kiszereles,
-        hely,
-        lejarat,
-        gyartasido,
-        szin,
-        jeloles,
-        letrehozas,
-        utolso_modositas
-FROM raktar
-WHERE
-lower(megnevezes || becenev || gyarto || leiras || szin || megjegyzes || hely)
-LIKE "%{term.lower()}%"
-ORDER BY gyarto, megnevezes;""")
+    
+    def write_item(self, stockitem:StockItemRecord) -> None:
+        if getattr(stockitem, "articlenumber", False):
+            with self:
+                self.execute("""
+        UPDATE raktar
+        SET keszlet = ?, megnevezes = ?, becenev = ?, gyarto = ?, leiras = ?,
+            szin = ?, megjegyzes = ?, egyseg = ?, egysegar = ?, kiszereles = ?,
+            hely = ?, lejarat = ?, gyartasido = ?, utolso_modositas = date()
+        WHERE cikkszam = ?;
+        """, (stockitem.stock, stockitem.name, stockitem.nickname,
+              stockitem.manufacturer, stockitem.description, stockitem.color, stockitem.comment, stockitem.unit, stockitem.unitprice,
+              stockitem.packaging, stockitem.place, stockitem.shelflife, stockitem.productiondate, stockitem.articlenumber))
+            print(stockitem.name, "modified")
+            return stockitem.articlenumber
+        else:
+            with self:
+                self.execute("""
+        INSERT INTO raktar (keszlet, megnevezes, becenev, gyarto, leiras, szin,
+                            megjegyzes, egyseg, egysegar, kiszereles, hely,
+                            lejarat, gyartasido, letrehozas, utolso_modositas)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date(), date())
+        """, (stockitem.stock, stockitem.name, stockitem.nickname,
+              stockitem.manufacturer, stockitem.description, stockitem.color, stockitem.comment, stockitem.unit, stockitem.unitprice,
+              stockitem.packaging, stockitem.place, stockitem.shelflife, stockitem.productiondate))
+            print(stockitem.name, "inserted")
+            return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
 
     def mark_item(self, primary_key:int, color:str) -> None:
         with self:
