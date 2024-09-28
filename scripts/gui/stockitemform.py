@@ -207,6 +207,7 @@ class StockItemForm(LabelFrame):
         self.__productiondate_var.set(stockitem.productiondate)
         self.__name_entry["style"] = "okstyle.TEntry"
         self.__manufacturer_entry["style"] = "okstyle.TEntry"
+        self.__packaging_entry["style"] = "okstyle.TEntry"
         self.__unit_entry["style"] = "okstyle.TEntry"
         self.__shelflife_entry["style"] = "okstyle.TEntry"
         self.__stock_entry["style"] = "okstlye.TEntry"
@@ -224,9 +225,11 @@ class StockItemForm(LabelFrame):
         self.__name_entry["style"] = "errorstyle.TEntry"
         self.__manufacturer_entry["style"] = "errorstyle.TEntry"
         self.__unit_entry["style"] = "errorstyle.TEntry"
-        self.__packaging_entry["style"] = "errorstyle.TEntry"
         self.__stock_entry["style"] = "errorstyle.TEntry"
         self.__unitprice_entry["style"] = "errorstyle.TEntry"
+        self.__packaging_entry["style"] = "okstyle.TEntry"
+        self.__shelflife_entry["style"] = "okstyle.TEntry"
+        self.__productiondate_entry["style"] = "okstlye.TEntry"
     
     def _set_default_values(self) -> None:
         self.__primary_key = None
