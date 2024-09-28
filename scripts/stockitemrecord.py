@@ -29,6 +29,7 @@ class StockItemRecord():
     """Handles a single item in the stock."""
 
     def __init__(self, **kwargs) -> None:
+        self.articlenumber = None
         for arg, value in kwargs.items():
             setattr(self, TRANSLATE_ATTRIBUTES.get(arg, arg), value)
 
