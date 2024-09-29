@@ -51,16 +51,16 @@ class ItemListbox(LabelFrame):
 
     def clear_listbox(self) -> None:
         self.__listbox.delete(0, END)
-    
+
     def clear_entry(self) -> None:
         self.__lookup_var.set("")
 
     def register_lookup(self, reference:str) -> None:
         self.__lookup_entry["validatecommand"] = (reference, "%P")
-    
+
     def bind_selection(self, method:callable) -> None:
         self.__listbox.bind("<<ListboxSelect>>", method)
-    
+
     def get_record(self) -> StockItemRecord:
         try:
             self.__selected_item =\
@@ -68,15 +68,25 @@ class ItemListbox(LabelFrame):
             return self.__selected_item
         except IndexError:  # empty list
             return None
-    
+
     def select_index(self, idx:int) -> None:
         self.__listbox.selection_set(idx)
         self.__listbox.event_generate("<<ListboxSelect>>")
-    
+
+    def update_line(self, item:StockItemRecord) -> None:
+        for idx, stockitem in enumerate(self.__item_list):
+            if stockitem.articlenumber == item.articlenumber:
+                break
+        self.__item_list[idx] = item
+        self.__listbox.delete(idx)
+        self.__listbox.insert(idx, str(item))
+        self.select_index(idx)
+        self.update_idletasks()
+
     @property
     def lookup(self) -> str:
         return self.__lookup_var.get()
-    
+
     @property
     def selected_item(self) -> StockItemRecord:
         return self.__selected_item

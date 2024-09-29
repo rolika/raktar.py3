@@ -46,9 +46,8 @@ class Gui(Frame):
         self.stockitemform.populate(item)
     
     def check_item(self) -> StockItemRecord|None:
-        """Before updating the database record, check if the form is valid,
-        warn the user if the stock has changed, and only after that write the
-        changes."""
+        """Before updating the database record, check if the form is valid and
+        warn the user if the stock has changed."""
         if self.stockitemform.is_valid():
             original_item = self.itemlistbox.selected_item
             updated_item = self.stockitemform.retrieve()
@@ -61,7 +60,7 @@ class Gui(Frame):
                 return updated_item  # insert
         else:
             messagebox.showwarning(title="Hiányos adatok!",
-                                   message="A piros mezőket töltsd ki!")
+                                   message="A piros mezőket javítsd!")
         return None
 
 

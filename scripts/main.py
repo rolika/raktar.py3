@@ -28,7 +28,7 @@ class InventoryApp():
         self.__gui.itemlistbox.populate(self._load(all_items))
         self.__gui.itemlistbox.select_index(0)
         self.__gui.mainloop()
-    
+
     def _bindings(self) -> None:
         lookup_ = self.__gui.itemlistbox.register(self._lookup)
         self.__gui.itemlistbox.register_lookup(lookup_)
@@ -55,15 +55,12 @@ class InventoryApp():
         item = self.__gui.itemlistbox.get_record()
         if item:
             self.__gui.update_form(item)
-    
+
     def _save_item(self) -> None:
         if item := self.__gui.check_item():
             self.__dbsession.write_item(item)
-            self.__gui.itemlistbox.clear_listbox()
-            self.__gui.itemlistbox.clear_entry()
-            all_items = self.__dbsession.select_all_items()
-            self.__gui.itemlistbox.populate(self._load(all_items))
-            self.__gui.itemlistbox.select_index(0)
+            if item.articlenumber:  # this was an update
+                self.__gui.itemlistbox.update_line(item)
 
 
 if __name__ == "__main__":

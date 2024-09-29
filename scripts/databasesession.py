@@ -79,7 +79,7 @@ class DatabaseSession(sqlite3.Connection):
             self.execute("""UPDATE raktar
                             SET keszlet = ?, utolso_modositas = date()
                             WHERE cikkszam = ?;""", (quantity, primary_key))
-    
+
     def write_item(self, stockitem:StockItemRecord) -> None:
         if getattr(stockitem, "articlenumber", False):
             with self:
@@ -93,7 +93,6 @@ class DatabaseSession(sqlite3.Connection):
               stockitem.manufacturer, stockitem.description, stockitem.color, stockitem.comment, stockitem.unit, stockitem.unitprice,
               stockitem.packaging, stockitem.place, stockitem.shelflife, stockitem.productiondate, stockitem.articlenumber))
             print(stockitem.name, "modified")
-            return stockitem.articlenumber
         else:
             with self:
                 self.execute("""
@@ -105,7 +104,9 @@ class DatabaseSession(sqlite3.Connection):
               stockitem.manufacturer, stockitem.description, stockitem.color, stockitem.comment, stockitem.unit, stockitem.unitprice,
               stockitem.packaging, stockitem.place, stockitem.shelflife, stockitem.productiondate))
             print(stockitem.name, "inserted")
-            return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
+
+    def get_last_rowid(self) -> int:
+        return self.execute("""SELECT last_insert_rowid();""").fetchone()[0]
 
     def mark_item(self, primary_key:int, color:str) -> None:
         with self:
