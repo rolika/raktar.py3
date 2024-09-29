@@ -19,7 +19,8 @@ class ItemListbox(LabelFrame):
     def _build_interface(self) -> None:
         self.__lookup_entry = ttk.Entry(self, textvariable=self.__lookup_var,
                                         validate="key")
-        Label(self, bitmap="questhead").grid(row=0, column=1)
+        self.__clear_button = Button(self, bitmap="questhead")
+        self.__clear_button.grid(row=0, column=1)
         self.__lookup_entry.focus()
 
         vertical_scroll = Scrollbar(self, orient=VERTICAL)
@@ -61,6 +62,9 @@ class ItemListbox(LabelFrame):
     def bind_selection(self, method:callable) -> None:
         self.__listbox.bind("<<ListboxSelect>>", method)
 
+    def bind_clear_selection(self, method:callable) -> None:
+        self.__clear_button["command"] = method
+
     def get_record(self) -> StockItemRecord:
         try:
             self.__selected_item =\
@@ -82,10 +86,6 @@ class ItemListbox(LabelFrame):
         self.__listbox.insert(idx, str(item))
         self.select_index(idx)
         self.update_idletasks()
-
-    @property
-    def lookup(self) -> str:
-        return self.__lookup_var.get()
 
     @property
     def selected_item(self) -> StockItemRecord:

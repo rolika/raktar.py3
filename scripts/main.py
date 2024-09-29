@@ -34,6 +34,8 @@ class InventoryApp():
         self.__gui.itemlistbox.register_lookup(lookup_)
         self.__gui.itemlistbox.bind_selection(self._show_selected)
         self.__gui.controldevice.set_saveitem_command(self._save_item)
+        self.__gui.bind_all("<Escape>", self._clear_selection)
+        self.__gui.itemlistbox.bind_clear_selection(self._clear_selection)
 
     def _lookup(self, term:str) -> bool:
         self.__gui.itemlistbox.clear_listbox()
@@ -61,6 +63,10 @@ class InventoryApp():
             self.__dbsession.write_item(item)
             if item.articlenumber:  # this was an update
                 self.__gui.itemlistbox.update_line(item)
+    
+    def _clear_selection(self, _=None) -> None:
+        self.__gui.itemlistbox.clear_entry()
+        self._lookup("")
 
 
 if __name__ == "__main__":
