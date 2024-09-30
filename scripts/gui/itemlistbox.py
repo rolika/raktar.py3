@@ -77,7 +77,7 @@ class ItemListbox(LabelFrame):
         self.__listbox.selection_set(idx)
         self.__listbox.event_generate("<<ListboxSelect>>")
 
-    def update_line(self, item:StockItemRecord) -> None:
+    def update_item(self, item:StockItemRecord) -> None:
         for idx, stockitem in enumerate(self.__item_list):
             if stockitem.articlenumber == item.articlenumber:
                 break
@@ -85,7 +85,7 @@ class ItemListbox(LabelFrame):
         self.__listbox.delete(idx)
         self.__listbox.insert(idx, str(item))
         self.select_index(idx)
-        self.update_idletasks()
+        self.__listbox.see(idx)
 
     @property
     def selected_item(self) -> StockItemRecord:

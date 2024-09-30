@@ -62,7 +62,13 @@ class InventoryApp():
         if item := self.__gui.check_item():
             self.__dbsession.write_item(item)
             if item.articlenumber:  # this was an update
-                self.__gui.itemlistbox.update_line(item)
+                self.__gui.itemlistbox.update_item(item)
+            else:
+                self.__gui.itemlistbox.clear_listbox()
+                all_items = self.__dbsession.select_all_items()
+                self.__gui.itemlistbox.populate(self._load(all_items))
+                item.articlenumber = self.__dbsession.get_last_rowid()
+                self.__gui.itemlistbox.update_item(item)
     
     def _clear_selection(self, _=None) -> None:
         self.__gui.itemlistbox.clear_entry()
