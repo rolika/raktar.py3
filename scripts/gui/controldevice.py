@@ -7,8 +7,8 @@ PADY = 2
 
 
 class ControlDevice(LabelFrame):
-    def __init__(self) -> None:
-        super().__init__(text="Kezelőgombok")
+    def __init__(self, root=None) -> None:
+        super().__init__(root, text="Kezelőgombok")
         self._build_interface()
     
     def _build_interface(self) -> None:
