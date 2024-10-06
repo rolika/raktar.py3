@@ -5,8 +5,8 @@ from scripts.stockitemrecord import StockItemRecord
 
 
 class ItemListbox(LabelFrame):
-    def __init__(self, title="Raktárkészlet") -> None:
-        super().__init__(text=title)
+    def __init__(self, root=None, title="Raktárkészlet") -> None:
+        super().__init__(root, text=title)
         self.__selected_item = None
         self.__item_list = None
         self._init_controll_variables()
@@ -90,6 +90,10 @@ class ItemListbox(LabelFrame):
     @property
     def selected_item(self) -> StockItemRecord:
         return self.__selected_item
+    
+    @property
+    def lookup_entry(self) -> ttk.Entry:
+        return self.__lookup_entry
 
 
 if __name__ == "__main__":

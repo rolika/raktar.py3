@@ -39,3 +39,6 @@ class ControlDevice(LabelFrame):
     
     def set_saveitem_command(self, func:callable) -> None:
         self.__saveitem_button["command"] = func
+    
+    def set_withdraw_command(self, func:callable) -> None:
+        self.__withdraw_button["command"] = func
