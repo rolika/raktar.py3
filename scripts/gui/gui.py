@@ -28,19 +28,21 @@ class Gui(Frame):
             self.master.iconbitmap(default = WINDOWS_ICON)
         self.master.title(PROGRAM + " v" + version)
         self._build_interface()
-        self.grid(padx=PADX, pady=PADY)
+        self.pack(padx=PADX, pady=PADY)
 
     def _build_interface(self):
-        self.stockitemform = StockItemForm()
-        self.itemlistbox = ItemListbox()
+        frame = Frame(self)
+        self.stockitemform = StockItemForm(frame)
+        self.itemlistbox = ItemListbox(frame)
         self.stockitemform.grid(row=0, column=0, padx=PADX, pady=PADY,
                                 sticky=N+E+W)
         self.itemlistbox.grid(row=0, column=1, padx=PADX, pady=PADY,
                               sticky=N+S, rowspan=2)
-        self.controldevice = ControlDevice()
+        self.controldevice = ControlDevice(frame)
         self.controldevice.grid(row=1, column=0, padx=PADX, pady=PADY,
                                 sticky=E+W+N+S)
         self.controldevice.set_newitem_command(self.stockitemform.clear)
+        frame.pack()
 
     def update_form(self, item:StockItemRecord) -> None:
         self.stockitemform.populate(item)
