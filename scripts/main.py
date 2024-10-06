@@ -11,6 +11,7 @@ from sqlite3 import Cursor
 from scripts.databasesession import DatabaseSession
 from scripts.filesession import FileSession
 from scripts.gui.gui import Gui
+from scripts.gui.withdraw_gui import WithdrawGui
 from scripts.projectnumber import Projectnumber
 from scripts.rep import Rep
 from scripts.stockitemrecord import StockItemRecord
@@ -34,6 +35,7 @@ class InventoryApp():
         self.__gui.itemlistbox.register_lookup(lookup_)
         self.__gui.itemlistbox.bind_selection(self._show_selected)
         self.__gui.controldevice.set_saveitem_command(self._save_item)
+        self.__gui.controldevice.set_withdraw_command(self._new_waybill)
         self.__gui.bind_all("<Escape>", self._clear_selection)
         self.__gui.itemlistbox.bind_clear_selection(self._clear_selection)
 
@@ -71,6 +73,9 @@ class InventoryApp():
     def _clear_selection(self, _=None) -> None:
         self.__gui.itemlistbox.clear_entry()
         self._lookup("")
+    
+    def _new_waybill(self) -> None:
+        withdraw_gui = WithdrawGui()
 
 
 if __name__ == "__main__":
