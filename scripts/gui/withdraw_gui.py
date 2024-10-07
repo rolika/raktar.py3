@@ -14,15 +14,23 @@ class WithdrawGui(simpledialog.Dialog):
     def __init__(self, root=None, title="Kivét raktárból") -> None:
         super().__init__(root, title)
     
+    def _populate(func:callable) -> callable:
+        """Decorator for populating the itemlistbox."""
+        def wrapper(self, root):
+            func(self, root)
+            self.itemlistbox.populate([str(i) for i in range(50)])
+            return self.itemlistbox.lookup_entry  # setting the focus
+        return wrapper
+    
+    @_populate
     def body(self, root) -> None:
         """Create dialog body. Return widget that should have initial focus."""
-        body = Frame(self)
-        self.__itemlistbox = ItemListbox(body)
-        self.__withdraw_listbox = ItemListbox(body, title="Szállítólevél")
+        box = Frame(self)
+        self.__itemlistbox = ItemListbox(box)
+        self.__withdraw_listbox = ItemListbox(box, title="Szállítólevél")
         self.__itemlistbox.pack(side=LEFT, padx=PADX, pady=PADY)
         self.__withdraw_listbox.pack(padx=PADX, pady=PADY)
-        body.pack()
-        return self.__itemlistbox.lookup_entry
+        box.pack()
 
     def buttonbox(self):
         """Override standard button texts."""
@@ -35,3 +43,7 @@ class WithdrawGui(simpledialog.Dialog):
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
         box.pack()
+    
+    @property
+    def itemlistbox(self) -> ItemListbox:
+        return self.__itemlistbox
