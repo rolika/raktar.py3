@@ -12,6 +12,7 @@ from scripts.databasesession import DatabaseSession
 from scripts.filesession import FileSession
 from scripts.gui.gui import Gui
 from scripts.gui.withdraw_gui import WithdrawGui
+from scripts.listboxdatabasemediator import ListboxDatabaseMediator
 from scripts.projectnumber import Projectnumber
 from scripts.rep import Rep
 from scripts.stockitemrecord import StockItemRecord
@@ -75,7 +76,9 @@ class InventoryApp():
         self._lookup("")
     
     def _new_waybill(self) -> None:
-        withdraw_gui = WithdrawGui()
+        mediator = ListboxDatabaseMediator()
+        mediator.add_dbsession(self.__dbsession)
+        WithdrawGui(mediator=mediator)
 
 
 if __name__ == "__main__":

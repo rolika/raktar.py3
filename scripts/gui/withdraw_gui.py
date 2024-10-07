@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import simpledialog
 
 from scripts.gui.itemlistbox import ItemListbox
+from scripts.listboxdatabasemediator import ListboxDatabaseMediator
 
 
 PADX = 2
@@ -11,15 +12,18 @@ PADY = 2
 
 
 class WithdrawGui(simpledialog.Dialog):
-    def __init__(self, root=None, title="Kivét raktárból") -> None:
+    def __init__(self, root=None, title="Kivét raktárból",
+                 mediator:ListboxDatabaseMediator=None) -> None:
+        self.__listbox_database_mediator = mediator
         super().__init__(root, title)
     
     def _populate(func:callable) -> callable:
         """Decorator for populating the itemlistbox."""
         def wrapper(self, root):
             func(self, root)
-            self.itemlistbox.populate([str(i) for i in range(50)])
-            return self.itemlistbox.lookup_entry  # setting the focus
+            self.__listbox_database_mediator.add_itemlistbox(self.__itemlistbox)
+            self.__listbox_database_mediator.populate()
+            return self.__itemlistbox.lookup_entry  # setting the focus
         return wrapper
     
     @_populate
@@ -43,7 +47,3 @@ class WithdrawGui(simpledialog.Dialog):
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
         box.pack()
-    
-    @property
-    def itemlistbox(self) -> ItemListbox:
-        return self.__itemlistbox
