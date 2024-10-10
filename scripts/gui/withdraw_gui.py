@@ -2,9 +2,10 @@ import os
 from tkinter import *
 from tkinter import ttk
 from tkinter import simpledialog
+from typing import List
 
 from scripts.gui.itemlistbox import ItemListbox
-from scripts.listboxdatabasemediator import ListboxDatabaseMediator
+# from scripts.guidbasemediator import GuiDbaseMediator
 
 
 PADX = 2
@@ -13,21 +14,21 @@ PADY = 2
 
 class WithdrawGui(simpledialog.Dialog):
     def __init__(self, root=None, title="Kivét raktárból",
-                 mediator:ListboxDatabaseMediator=None) -> None:
-        self.__listbox_database_mediator = mediator
+                 mediator=None) -> None:
+        self.__mediator = mediator
         super().__init__(root, title)
     
     def _populate(func:callable) -> callable:
         """Decorator for populating the itemlistbox."""
         def wrapper(self, root):
             func(self, root)
-            self.__listbox_database_mediator.add_itemlistbox(self.__itemlistbox)
-            self.__listbox_database_mediator.populate()
+            self.__mediator.add_gui(self)
+            self.__mediator.populate()
             return self.__itemlistbox.lookup_entry  # setting the focus
         return wrapper
     
     @_populate
-    def body(self, root) -> None:
+    def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
         box = Frame(self)
         self.__itemlistbox = ItemListbox(box)
@@ -47,3 +48,7 @@ class WithdrawGui(simpledialog.Dialog):
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
         box.pack()
+    
+    @property
+    def itemlistbox(self) -> ItemListbox:
+        return self.__itemlistbox
