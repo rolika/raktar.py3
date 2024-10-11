@@ -43,7 +43,6 @@ class WithdrawGui(simpledialog.Dialog):
         w = ttk.Button(box, text="Mégse", width=10, command=self.cancel)
         w.pack(side=LEFT, padx=5, pady=5)
         self.bind("<Return>", self.ok)
-        self.bind("<Escape>", self.cancel)
         box.pack()
     
     def _get_projectnumber(self) -> Projectnumber:

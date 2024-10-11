@@ -24,7 +24,8 @@ class ItemListbox(LabelFrame):
     def _build_interface(self) -> None:
         self.__lookup_entry = ttk.Entry(self, textvariable=self.__lookup_var,
                                         validate="key")
-        self.__clear_button = Button(self, bitmap="questhead")
+        self.__clear_button = Button(self, bitmap="questhead",
+                                     command=self._clear_selection)
         self.__clear_button.grid(row=0, column=1)
         self.__lookup_entry.focus()
 
@@ -53,6 +54,12 @@ class ItemListbox(LabelFrame):
     def _bindings(self) -> None:
         lookup_ = self.__listbox.register(self.lookup)
         self.__lookup_entry["validatecommand"] = (lookup_, "%P")
+        self.__listbox.bind("<Escape>", self._clear_selection)
+        self.__lookup_entry.bind("<Escape>", self._clear_selection)
+
+    def _clear_selection(self, _=None) -> None:
+        self.__lookup_var.set("")
+        self.lookup("")    
 
     def populate(self, item_list:list) -> None:
         self.__item_list = item_list
@@ -62,17 +69,8 @@ class ItemListbox(LabelFrame):
     def clear_listbox(self) -> None:
         self.__listbox.delete(0, END)
 
-    def clear_entry(self) -> None:
-        self.__lookup_var.set("")
-
-    def register_lookup(self, reference:str) -> None:
-        self.__lookup_entry["validatecommand"] = (reference, "%P")
-
     def bind_selection(self, method:callable) -> None:
         self.__listbox.bind("<<ListboxSelect>>", method)
-
-    def bind_clear_selection(self, method:callable) -> None:
-        self.__clear_button["command"] = method
 
     def get_record(self) -> StockItemRecord:
         try:
@@ -96,8 +94,7 @@ class ItemListbox(LabelFrame):
         self.select_index(idx)
         self.__listbox.see(idx)
 
-    def lookup(self, term:str) -> bool:
-        assert self.__dbsession
+    def lookup(self, term:str) -> bool:        
         self.clear_listbox()
         selection = self.__dbsession.load_all_items()
         for word in re.split(r"\W+", term.lower()):
