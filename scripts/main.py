@@ -9,12 +9,8 @@ import re
 from sqlite3 import Cursor
 
 from scripts.databasesession import DatabaseSession
-from scripts.filesession import FileSession
 from scripts.gui.gui import Gui
 from scripts.gui.withdraw_gui import WithdrawGui
-from scripts.guidbasemediator import GuiDbaseMediator
-from scripts.projectnumber import Projectnumber
-from scripts.rep import Rep
 from scripts.stockitemrecord import StockItemRecord
 
 
@@ -76,9 +72,7 @@ class InventoryApp():
         self._lookup("")
     
     def _new_waybill(self) -> None:
-        mediator = GuiDbaseMediator()
-        mediator.add_dbsession(self.__dbsession)
-        WithdrawGui(mediator=mediator)
+        WithdrawGui(dbsession=self.__dbsession)
 
 
 if __name__ == "__main__":

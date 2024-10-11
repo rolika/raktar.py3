@@ -2,10 +2,11 @@ import os
 from tkinter import *
 from tkinter import ttk
 from tkinter import simpledialog
-from typing import List
+from tkinter import messagebox
 
+from scripts.databasesession import DatabaseSession
 from scripts.gui.itemlistbox import ItemListbox
-# from scripts.guidbasemediator import GuiDbaseMediator
+from scripts.projectnumber import Projectnumber
 
 
 PADX = 2
@@ -14,20 +15,13 @@ PADY = 2
 
 class WithdrawGui(simpledialog.Dialog):
     def __init__(self, root=None, title="Kivét raktárból",
-                 mediator=None) -> None:
-        self.__mediator = mediator
+                 dbsession=DatabaseSession) -> None:
+        self.__dbsession = dbsession
+        self.__projectnumber = self._get_projectnumber()
+        if not self.__projectnumber:
+            return
         super().__init__(root, title)
     
-    def _populate(func:callable) -> callable:
-        """Decorator for populating the itemlistbox."""
-        def wrapper(self, root):
-            func(self, root)
-            self.__mediator.add_gui(self)
-            self.__mediator.populate()
-            return self.__itemlistbox.lookup_entry  # setting the focus
-        return wrapper
-    
-    @_populate
     def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
         box = Frame(self)
@@ -35,7 +29,10 @@ class WithdrawGui(simpledialog.Dialog):
         self.__withdraw_listbox = ItemListbox(box, title="Szállítólevél")
         self.__itemlistbox.pack(side=LEFT, padx=PADX, pady=PADY)
         self.__withdraw_listbox.pack(padx=PADX, pady=PADY)
+        self.__itemlistbox.populate(self.__dbsession.load_all_items())
+        self.__itemlistbox.select_index(0)
         box.pack()
+        return self.__itemlistbox.lookup_entry
 
     def buttonbox(self):
         """Override standard button texts."""
@@ -49,6 +46,16 @@ class WithdrawGui(simpledialog.Dialog):
         self.bind("<Escape>", self.cancel)
         box.pack()
     
-    @property
-    def itemlistbox(self) -> ItemListbox:
-        return self.__itemlistbox
+    def _get_projectnumber(self) -> Projectnumber:
+        while True:
+            projectnumber =\
+                simpledialog.askstring(title="Új szállítólevél",
+                                       prompt="Kérlek add meg a projektszámot:")
+            if not projectnumber:
+                return None
+            projectnumber = Projectnumber(projectnumber)
+            if projectnumber:
+                return projectnumber
+            else:
+                messagebox.showwarning(title="Vigyázz!",
+                                       message="Hibás projektszám!")

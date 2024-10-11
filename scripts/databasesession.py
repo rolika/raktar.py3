@@ -1,5 +1,6 @@
 import pathlib
 import sqlite3
+from typing import List
 
 from scripts.stockitemrecord import StockItemRecord
 
@@ -154,3 +155,6 @@ VALUES (?, ?, ?, ?, date(), ?)
             WHERE strftime("%Y-%m", datum) = ?
             ORDER BY projektszam ASC;
         """, (month, ))
+    
+    def load_all_items(self) -> List[StockItemRecord]:
+        return [StockItemRecord(**item) for item in self.select_all_items()]
