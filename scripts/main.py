@@ -20,7 +20,7 @@ DATABASE = "data/adatok.db"
 class InventoryApp():
     def __init__(self, database:str=DATABASE) -> None:
         self.__dbsession = DatabaseSession(database)
-        self.__gui = Gui()
+        self.__gui = Gui(dbsession=self.__dbsession)
         self._bindings()
         all_items = self.__dbsession.select_all_items()
         self.__gui.itemlistbox.populate(self._load(all_items))
@@ -28,26 +28,11 @@ class InventoryApp():
         self.__gui.mainloop()
 
     def _bindings(self) -> None:
-        lookup_ = self.__gui.itemlistbox.register(self._lookup)
-        self.__gui.itemlistbox.register_lookup(lookup_)
         self.__gui.itemlistbox.bind_selection(self._show_selected)
         self.__gui.controldevice.set_saveitem_command(self._save_item)
         self.__gui.controldevice.set_withdraw_command(self._new_waybill)
         self.__gui.bind_all("<Escape>", self._clear_selection)
         self.__gui.itemlistbox.bind_clear_selection(self._clear_selection)
-
-    def _lookup(self, term:str) -> bool:
-        self.__gui.itemlistbox.clear_listbox()
-        selection = self._load(self.__dbsession.select_all_items())
-        for word in re.split(r"\W+", term.lower()):
-            if word:
-                selection = [item for item in selection if item.contains(word)]
-        self.__gui.itemlistbox.populate(selection)
-        try:
-            self.__gui.itemlistbox.select_index(0)
-        except IndexError:  # no result, empty list
-            pass
-        return True
 
     def _load(self, source:Cursor) -> list[StockItemRecord]:
         return [StockItemRecord(**item) for item in source]

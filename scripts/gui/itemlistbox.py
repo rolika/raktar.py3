@@ -15,6 +15,7 @@ class ItemListbox(LabelFrame):
         self.__dbsession = dbsession
         self._init_controll_variables()
         self._build_interface()
+        self._bindings()
 
     def _init_controll_variables(self) -> None:
         self.__lookup_var = StringVar()
@@ -48,6 +49,10 @@ class ItemListbox(LabelFrame):
         self.__lookup_entry.grid(row=0, column=0, sticky=E+W)
         self.__listbox.grid(row=1, column=0)
         vertical_scroll.grid(row=1, column=1, sticky=N+S)
+    
+    def _bindings(self) -> None:
+        lookup_ = self.__listbox.register(self.lookup)
+        self.__lookup_entry["validatecommand"] = (lookup_, "%P")
 
     def populate(self, item_list:list) -> None:
         self.__item_list = item_list

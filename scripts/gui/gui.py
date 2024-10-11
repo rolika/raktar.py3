@@ -2,6 +2,7 @@ import os
 from tkinter import *
 from tkinter import messagebox
 
+from scripts.databasesession import DatabaseSession
 from scripts.gui.controldevice import ControlDevice
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.gui.stockitemform import StockItemForm
@@ -18,7 +19,8 @@ PADY = 2
 
 
 class Gui(Frame):
-    def __init__(self, root=None, version="0.0.0"):
+    def __init__(self, root=None, version="0.0.0",
+                 dbsession:DatabaseSession=None) -> None:
         super().__init__(root)
         if os.name == "posix":
             icon = PhotoImage(file = LINUX_ICON)
@@ -26,13 +28,14 @@ class Gui(Frame):
         else:
             self.master.iconbitmap(default = WINDOWS_ICON)
         self.master.title(PROGRAM + " v" + version)
+        self.__dbsession = dbsession
         self._build_interface()
         self.pack(padx=PADX, pady=PADY)
 
     def _build_interface(self):
         frame = Frame(self)
         self.stockitemform = StockItemForm(frame)
-        self.itemlistbox = ItemListbox(frame)
+        self.itemlistbox = ItemListbox(frame, dbsession=self.__dbsession)
         self.stockitemform.grid(row=0, column=0, padx=PADX, pady=PADY,
                                 sticky=N+E+W)
         self.itemlistbox.grid(row=0, column=1, padx=PADX, pady=PADY,

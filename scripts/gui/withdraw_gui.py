@@ -32,7 +32,6 @@ class WithdrawGui(simpledialog.Dialog):
         self.__itemlistbox.populate(self.__dbsession.load_all_items())
         self.__itemlistbox.select_index(0)
         box.pack()
-        self._bindings()
         return self.__itemlistbox.lookup_entry
 
     def buttonbox(self):
@@ -61,9 +60,9 @@ class WithdrawGui(simpledialog.Dialog):
                 messagebox.showwarning(title="Vigyázz!",
                                        message="Hibás projektszám!")
     
-    def _bindings(self) -> None:
-        lookup_ = self.__itemlistbox.register(self.__itemlistbox.lookup)
-        self.__itemlistbox.register_lookup(lookup_)
+    # def _bindings(self) -> None:
+    #     lookup_ = self.__itemlistbox.register(self.__itemlistbox.lookup)
+    #     self.__itemlistbox.register_lookup(lookup_)
         # self.__itemlistbox.bind_selection(self._show_selected)
         # self.bind_all("<Escape>", self._clear_selection)
         # self.__itemlistbox.bind_clear_selection(self._clear_selection)
