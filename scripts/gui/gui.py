@@ -3,7 +3,6 @@ from tkinter import *
 from tkinter import messagebox
 
 from scripts.gui.controldevice import ControlDevice
-from scripts.gui.selectiondisplay import SelectionDisplay
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.gui.stockitemform import StockItemForm
 from scripts.stockitemrecord import StockItemRecord
