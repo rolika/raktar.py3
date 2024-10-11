@@ -25,13 +25,14 @@ class WithdrawGui(simpledialog.Dialog):
     def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
         box = Frame(self)
-        self.__itemlistbox = ItemListbox(box)
+        self.__itemlistbox = ItemListbox(box, dbsession=self.__dbsession)
         self.__withdraw_listbox = ItemListbox(box, title="Szállítólevél")
         self.__itemlistbox.pack(side=LEFT, padx=PADX, pady=PADY)
         self.__withdraw_listbox.pack(padx=PADX, pady=PADY)
         self.__itemlistbox.populate(self.__dbsession.load_all_items())
         self.__itemlistbox.select_index(0)
         box.pack()
+        self._bindings()
         return self.__itemlistbox.lookup_entry
 
     def buttonbox(self):
@@ -59,3 +60,10 @@ class WithdrawGui(simpledialog.Dialog):
             else:
                 messagebox.showwarning(title="Vigyázz!",
                                        message="Hibás projektszám!")
+    
+    def _bindings(self) -> None:
+        lookup_ = self.__itemlistbox.register(self.__itemlistbox.lookup)
+        self.__itemlistbox.register_lookup(lookup_)
+        # self.__itemlistbox.bind_selection(self._show_selected)
+        # self.bind_all("<Escape>", self._clear_selection)
+        # self.__itemlistbox.bind_clear_selection(self._clear_selection)

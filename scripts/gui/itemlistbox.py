@@ -1,14 +1,18 @@
+import re
 from tkinter import *
 from tkinter import ttk
 
+from scripts.databasesession import DatabaseSession
 from scripts.stockitemrecord import StockItemRecord
 
 
 class ItemListbox(LabelFrame):
-    def __init__(self, root=None, title="Raktárkészlet") -> None:
+    def __init__(self, root=None, title="Raktárkészlet",
+                 dbsession:DatabaseSession=None) -> None:
         super().__init__(root, text=title)
         self.__selected_item = None
         self.__item_list = None
+        self.__dbsession = dbsession
         self._init_controll_variables()
         self._build_interface()
 
@@ -86,6 +90,20 @@ class ItemListbox(LabelFrame):
         self.__listbox.insert(idx, str(item))
         self.select_index(idx)
         self.__listbox.see(idx)
+
+    def lookup(self, term:str) -> bool:
+        assert self.__dbsession
+        self.clear_listbox()
+        selection = self.__dbsession.load_all_items()
+        for word in re.split(r"\W+", term.lower()):
+            if word:
+                selection = [item for item in selection if item.contains(word)]
+        self.populate(selection)
+        try:
+            self.select_index(0)
+        except IndexError:  # no result, empty list
+            pass
+        return True
 
     @property
     def selected_item(self) -> StockItemRecord:
