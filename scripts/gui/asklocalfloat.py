@@ -47,9 +47,7 @@ class AskLocalFloat(simpledialog.Dialog):
         box.pack()
 
     def apply(self) -> None:
-        value = self.__entry_var.get()
-        if value:
-            self.__number = float(value)
+        self.__number = float(self.__entry_var.get())
 
     @property
     def number(self) -> float:
@@ -59,14 +57,22 @@ class AskLocalFloat(simpledialog.Dialog):
         number = None
         try:
             number = float(text)
+            if self.__minvalue and (self.__minvalue > number):
+                raise ValueError
+            if self.__maxvalue and (self.__maxvalue < number):
+                raise ValueError
             styles.apply_entry_ok(self, name)
             self.__ok_button["state"] = NORMAL
+            self.bind("<Return>", self.ok)
+            self.bind("<KP_Enter>", self.ok)
         except ValueError:
             styles.apply_entry_error(self, name)
             self.__ok_button["state"] = DISABLED
+            self.unbind("<Return>")
+            self.unbind("<KP_Enter>")
         return True
 
 if __name__ == "__main__":
     value = AskLocalFloat(title="Kivét", prompt="Mennyit veszel ki?",
-                          initvalue=324.5)
+                          initvalue=324.5, minvalue=10.0, maxvalue=500.0)
     print(value.number)
