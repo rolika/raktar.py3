@@ -8,7 +8,6 @@ from tkinter import simpledialog
 from scripts.gui import styles
 
 
-
 class AskLocalFloat(simpledialog.Dialog):
     """Ask for a float number and verify it considering locale settings."""
     def __init__(self, title:str, prompt:str, root=None, initvalue:float=None,
@@ -19,7 +18,7 @@ class AskLocalFloat(simpledialog.Dialog):
         self.__number = None
         self.__entry_var = StringVar()
         if initvalue:
-            self.__entry_var.set(initvalue)
+            self.__entry_var.set(locale.format_string(f="%.2f", val=initvalue))
         super().__init__(root, title=title)
 
     def body(self, root:Widget) -> Widget:
@@ -41,13 +40,11 @@ class AskLocalFloat(simpledialog.Dialog):
         self.__ok_button.pack(side=LEFT, padx=5, pady=5)
         Button(box, text="Mégse", width=10, command=self.cancel)\
             .pack(side=LEFT, padx=5, pady=5)
-        self.bind("<Return>", self.ok)
-        self.bind("<KP_Enter>", self.ok)
         self.bind("<Escape>", self.cancel)
         box.pack()
 
     def apply(self) -> None:
-        self.__number = float(self.__entry_var.get())
+        self.__number = locale.atof(self.__entry_var.get())
 
     @property
     def number(self) -> float:
@@ -56,7 +53,7 @@ class AskLocalFloat(simpledialog.Dialog):
     def _is_okay(self, text:str, name:str) -> bool:
         number = None
         try:
-            number = float(text)
+            number = locale.atof(text)
             if self.__minvalue and (self.__minvalue > number):
                 raise ValueError
             if self.__maxvalue and (self.__maxvalue < number):
@@ -73,6 +70,9 @@ class AskLocalFloat(simpledialog.Dialog):
         return True
 
 if __name__ == "__main__":
+    import locale
+    locale.setlocale(locale.LC_ALL, "")
+    print(locale.getlocale())
     value = AskLocalFloat(title="Kivét", prompt="Mennyit veszel ki?",
                           initvalue=324.5, minvalue=10.0, maxvalue=500.0)
     print(value.number)
