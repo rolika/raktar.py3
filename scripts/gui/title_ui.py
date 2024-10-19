@@ -1,12 +1,21 @@
+import os
 from tkinter import *
 from tkinter import ttk
 
 TITLE_IMAGE = r"data/titleimg.gif"
+WINDOWS_ICON = "data/pohlen.ico"
+LINUX_ICON = "data/pohlen.gif"
 
 
 class TitleUI(Frame):
     def __init__(self, root=None, title_image=TITLE_IMAGE, **kwargs) -> None:
         super().__init__(**kwargs)
+        if os.name == "posix":
+            icon = PhotoImage(file = LINUX_ICON)
+            self.master.tk.call("wm", "iconphoto", self.master._w, icon)
+        else:
+            self.master.iconbitmap(default = WINDOWS_ICON)
+        self.master.title("Pohlen-Dach")
         self.__title_image = PhotoImage(file=title_image)
         self._body()
 
