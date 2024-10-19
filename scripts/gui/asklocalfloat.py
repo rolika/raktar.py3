@@ -11,10 +11,12 @@ from scripts.gui import styles
 class AskLocalFloat(simpledialog.Dialog):
     """Ask for a float number and verify it considering locale settings."""
     def __init__(self, title:str, prompt:str, root=None, initvalue:float=None,
-                 minvalue:float=None, maxvalue:float=None) -> None:
+                 minvalue:float=None, maxvalue:float=None,
+                 unit:str=None) -> None:
         self.__prompt = prompt
         self.__minvalue = minvalue
         self.__maxvalue = maxvalue
+        self.__unit = unit
         self.__number = None
         self.__entry_var = StringVar()
         if initvalue:
@@ -28,7 +30,8 @@ class AskLocalFloat(simpledialog.Dialog):
         entry = ttk.Entry(box, justify=RIGHT, textvariable=self.__entry_var,
                           validate="all", validatecommand=(is_okay, "%P", "%W"))
         entry.select_range(0, END)
-        entry.pack()
+        entry.pack(side=LEFT)
+        ttk.Label(box, text=self.__unit).pack()
         box.pack()
         return entry
 
