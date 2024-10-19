@@ -14,14 +14,10 @@ PADX = 2
 PADY = 2
 
 
-class WithdrawGui(simpledialog.Dialog):
-    def __init__(self, root=None, title="Kivét raktárból",
-                 dbsession=DatabaseSession) -> None:
+class WithdrawUI(simpledialog.Dialog):
+    def __init__(self, root:Widget, dbsession:DatabaseSession) -> None:
         self.__dbsession = dbsession
-        self.__projectnumber = self._get_projectnumber()
-        if not self.__projectnumber:
-            return
-        super().__init__(root, title)
+        super().__init__(root, title="Kivét raktárból")
     
     def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
@@ -68,10 +64,3 @@ class WithdrawGui(simpledialog.Dialog):
                                initvalue=item.stock, minvalue=0,
                                maxvalue=item.stock, unit=item.unit)
         print(dialog.number)
-    
-    # def _bindings(self) -> None:
-    #     lookup_ = self.__itemlistbox.register(self.__itemlistbox.lookup)
-    #     self.__itemlistbox.register_lookup(lookup_)
-        # self.__itemlistbox.bind_selection(self._show_selected)
-        # self.bind_all("<Escape>", self._clear_selection)
-        # self.__itemlistbox.bind_clear_selection(self._clear_selection)
