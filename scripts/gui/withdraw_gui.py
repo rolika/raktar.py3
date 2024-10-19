@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import simpledialog
 from tkinter import messagebox
 
+from scripts.gui.asklocalfloat import AskLocalFloat
 from scripts.databasesession import DatabaseSession
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.projectnumber import Projectnumber
@@ -31,6 +32,7 @@ class WithdrawGui(simpledialog.Dialog):
         self.__withdraw_listbox.pack(padx=PADX, pady=PADY)
         self.__itemlistbox.populate(self.__dbsession.load_all_items())
         self.__itemlistbox.select_index(0)
+        self.__itemlistbox.bind_selection(self._withdraw)
         box.pack()
         return self.__itemlistbox.lookup_entry
 
@@ -58,6 +60,14 @@ class WithdrawGui(simpledialog.Dialog):
             else:
                 messagebox.showwarning(title="Vigyázz!",
                                        message="Hibás projektszám!")
+    
+    def _withdraw(self, _:Event) -> float:
+        item = self.__itemlistbox.get_record()
+        print(item)
+        dialog = AskLocalFloat(title="Kivét", prompt=item.name, root=self,
+                               initvalue=item.stock, minvalue=0,
+                               maxvalue=item.stock, unit=item.unit)
+        print(dialog.number)
     
     # def _bindings(self) -> None:
     #     lookup_ = self.__itemlistbox.register(self.__itemlistbox.lookup)
