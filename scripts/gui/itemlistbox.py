@@ -37,7 +37,8 @@ class ItemListbox(LabelFrame):
                                  selectmode=SINGLE,
                                  width=60,
                                  height=23,
-                                 yscrollcommand=vertical_scroll.set)
+                                 yscrollcommand=vertical_scroll.set,
+                                 exportselection=False)
         vertical_scroll["command"]=self.__listbox.yview
 
         self.__listbox.bind("<Button-4>",
@@ -82,7 +83,6 @@ class ItemListbox(LabelFrame):
 
     def select_index(self, idx:int) -> None:
         self.__listbox.selection_set(idx)
-        self.__listbox.event_generate("<<ListboxSelect>>")
 
     def update_item(self, item:StockItemRecord) -> None:
         for idx, stockitem in enumerate(self.__item_list):
@@ -114,6 +114,10 @@ class ItemListbox(LabelFrame):
     @property
     def lookup_entry(self) -> ttk.Entry:
         return self.__lookup_entry
+    
+    @lookup_entry.setter
+    def lookup_entry(self, value:str) -> None:
+        self.__lookup_var.set(value)
 
 
 if __name__ == "__main__":
