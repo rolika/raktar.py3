@@ -57,9 +57,9 @@ class AskLocalFloat(simpledialog.Dialog):
         number = None
         try:
             number = locale.atof(text)
-            if self.__minvalue and (self.__minvalue > number):
+            if self.__minvalue is not None and (number < self.__minvalue):
                 raise ValueError
-            if self.__maxvalue and (self.__maxvalue < number):
+            if self.__maxvalue is not None and (number > self.__maxvalue):
                 raise ValueError
             styles.apply_entry_ok(self, name)
             self.__ok_button["state"] = NORMAL
