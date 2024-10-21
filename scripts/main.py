@@ -31,7 +31,8 @@ class InventoryApplication():
         self.__projectnumber = project.projectnumber
         if not self.__projectnumber:
             return
-        withdraw_ui = WithdrawUI(self.__ui, self.__dbsession)
+        withdraw_ui = WithdrawUI(self.__ui, self.__dbsession,
+                                 self.__projectnumber)
                 
 
 

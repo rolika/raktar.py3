@@ -65,3 +65,12 @@ class StockItemRecord(Record):
             if term in str(getattr(self, attribute, None)).lower():
                 return True
         return False
+
+    @property
+    def withdraw_view(self) -> str:
+        assert self.change
+        space = " " if self.manufacturer else ""
+        return "{:<41} {:>10} {:<7}".format(
+                (self.manufacturer + space + self.name)[0:41],
+                locale.format_string(f="%+.2f", val=self.change, grouping=True),
+                self.unit)

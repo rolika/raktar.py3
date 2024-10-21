@@ -7,6 +7,7 @@ from tkinter import messagebox
 from scripts.gui.asklocalfloat import AskLocalFloat
 from scripts.databasesession import DatabaseSession
 from scripts.gui.itemlistbox import ItemListbox
+from scripts.logrecord import LogRecord
 from scripts.projectnumber import Projectnumber
 
 
@@ -15,19 +16,20 @@ PADY = 2
 
 
 class WithdrawUI(simpledialog.Dialog):
-    def __init__(self, root:Widget, dbsession:DatabaseSession) -> None:
+    def __init__(self, root:Widget, dbsession:DatabaseSession,
+                 projectnumber:Projectnumber) -> None:
         self.__dbsession = dbsession
-        super().__init__(root, title="Kivét raktárból")
+        self.__withdrawed_items = []
+        self.__projectnumber = projectnumber
+        super().__init__(root,
+                         title=f"{self.__projectnumber.legal}: Kivét raktárból")
     
     def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
         box = Frame(self)
         self.__itemlistbox = ItemListbox(box, dbsession=self.__dbsession)
-        self.__withdraw_listbox = ItemListbox(box, title="Szállítólevél")
         self.__itemlistbox.pack(side=LEFT, padx=PADX, pady=PADY)
-        self.__withdraw_listbox.pack(padx=PADX, pady=PADY)
         self.__itemlistbox.populate(self.__dbsession.load_all_items())
-        self.__itemlistbox.select_index(0)
         self.__itemlistbox.bind_selection(self._withdraw)
         box.pack()
         return self.__itemlistbox.lookup_entry
@@ -40,27 +42,17 @@ class WithdrawUI(simpledialog.Dialog):
         w.pack(side=LEFT, padx=5, pady=5)
         w = ttk.Button(box, text="Mégse", width=10, command=self.cancel)
         w.pack(side=LEFT, padx=5, pady=5)
-        self.bind("<Return>", self.ok)
         box.pack()
-    
-    def _get_projectnumber(self) -> Projectnumber:
-        while True:
-            projectnumber =\
-                simpledialog.askstring(title="Új szállítólevél",
-                                       prompt="Kérlek add meg a projektszámot:")
-            if not projectnumber:
-                return None
-            projectnumber = Projectnumber(projectnumber)
-            if projectnumber:
-                return projectnumber
-            else:
-                messagebox.showwarning(title="Vigyázz!",
-                                       message="Hibás projektszám!")
     
     def _withdraw(self, _:Event) -> float:
         item = self.__itemlistbox.get_record()
-        print(item)
-        dialog = AskLocalFloat(title="Kivét", prompt=item.name, root=self,
+        change = AskLocalFloat(title="Kivét", prompt=item.name, root=self,
                                initvalue=item.stock, minvalue=0,
                                maxvalue=item.stock, unit=item.unit)
-        print(dialog.number)
+        if change.number:
+            setattr(item, "change", -change.number)
+            setattr(item, "projectnumber", str(self.__projectnumber))
+            self.__withdrawed_items.append(item)
+            for item in self.__withdrawed_items:
+                print(item.withdraw_view)
+            print("---")
