@@ -8,7 +8,7 @@ locale.setlocale(locale.LC_ALL, "")
 from scripts.gui.askprojectnumber import AskProjectNumber
 from scripts.databasesession import DatabaseSession
 from scripts.gui.title_ui import TitleUI
-from scripts.gui.withdraw_ui import WithdrawUI
+from scripts.gui.withdrawdialog import WithdrawDialog
 
 
 DATABASE = "data/adatok.db"
@@ -31,8 +31,9 @@ class InventoryApplication():
         self.__projectnumber = project.projectnumber
         if not self.__projectnumber:
             return
-        withdraw_ui = WithdrawUI(self.__ui, self.__dbsession,
-                                 self.__projectnumber)
+        withdraw_dialog = WithdrawDialog(self.__ui, self.__dbsession,
+                                         self.__projectnumber)
+        self.__dbsession.log_stock_change(withdraw_dialog.withdrawed_items)
                 
 
 

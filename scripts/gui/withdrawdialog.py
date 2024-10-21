@@ -1,25 +1,25 @@
-import os
 from tkinter import *
 from tkinter import ttk
 from tkinter import simpledialog
-from tkinter import messagebox
+from typing import List
 
 from scripts.gui.asklocalfloat import AskLocalFloat
 from scripts.databasesession import DatabaseSession
 from scripts.gui.itemlistbox import ItemListbox
-from scripts.logrecord import LogRecord
 from scripts.projectnumber import Projectnumber
+from scripts.stockitemrecord import StockItemRecord
 
 
 PADX = 2
 PADY = 2
 
 
-class WithdrawUI(simpledialog.Dialog):
+class WithdrawDialog(simpledialog.Dialog):
     def __init__(self, root:Widget, dbsession:DatabaseSession,
                  projectnumber:Projectnumber) -> None:
         self.__dbsession = dbsession
         self.__withdrawed_items = []
+        self.__temp_withdraw = []
         self.__projectnumber = projectnumber
         super().__init__(root,
                          title=f"{self.__projectnumber.legal}: Kivét raktárból")
@@ -44,6 +44,9 @@ class WithdrawUI(simpledialog.Dialog):
         w.pack(side=LEFT, padx=5, pady=5)
         box.pack()
     
+    def apply(self) -> None:
+        self.__withdrawed_items = self.__temp_withdraw
+    
     def _withdraw(self, _:Event) -> float:
         item = self.__itemlistbox.get_record()
         change = AskLocalFloat(title="Kivét", prompt=item.name, root=self,
@@ -52,7 +55,11 @@ class WithdrawUI(simpledialog.Dialog):
         if change.number:
             setattr(item, "change", -change.number)
             setattr(item, "projectnumber", str(self.__projectnumber))
-            self.__withdrawed_items.append(item)
-            for item in self.__withdrawed_items:
+            self.__temp_withdraw.append(item)
+            for item in self.__temp_withdraw:
                 print(item.withdraw_view)
             print("---")
+    
+    @property
+    def withdrawed_items(self) -> List[StockItemRecord]|None:
+        return self.__withdrawed_items
