@@ -161,16 +161,17 @@ VALUES (?, ?, ?, ?, date(), ?)
     
     def log_stock_change(self, items:List[StockItemRecord]) -> None:
         for item in items:
-            self.execute("""
-                UPDATE raktar
-                SET keszlet = ?, utolso_modositas = date()
-                WHERE cikkszam = ?;
-            """, (item.stock + item.change, item.articlenumber))
-            space = " " if item.manufacturer else ""
-            name = item.manufacturer + space + item.name
-            self.execute("""
-                INSERT INTO raktar_naplo(megnevezes, egysegar, egyseg, valtozas,
-                                         datum, projektszam)
-                VALUES (?, ?, ?, ?, date(), ?)
-            """, (name, item.unitprice, item.unit, item.change,
-                  item.projectnumber))
+            with self:
+                self.execute("""
+                    UPDATE raktar
+                    SET keszlet = ?, utolso_modositas = date()
+                    WHERE cikkszam = ?;
+                """, (item.stock + item.change, item.articlenumber))
+                space = " " if item.manufacturer else ""
+                name = item.manufacturer + space + item.name
+                self.execute("""
+                    INSERT INTO raktar_naplo (megnevezes, egysegar, egyseg,
+                                              valtozas, datum, projektszam)
+                    VALUES (?, ?, ?, ?, date(), ?)
+                """, (name, item.unitprice, item.unit, item.change,
+                    item.projectnumber))
