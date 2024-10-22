@@ -31,7 +31,8 @@ class InventoryApplication():
         self.__projectnumber = project.projectnumber
         if not self.__projectnumber:
             return
-        withdraw_dialog = WithdrawDialog(self.__ui, self.__dbsession,
+        master_list = self.__dbsession.load_all_items()
+        withdraw_dialog = WithdrawDialog(self.__ui, master_list,
                                          self.__projectnumber)
         self.__dbsession.log_stock_change(withdraw_dialog.withdrawed_items)
                 

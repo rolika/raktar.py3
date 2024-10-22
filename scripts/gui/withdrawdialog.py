@@ -4,7 +4,6 @@ from tkinter import simpledialog
 from typing import List
 
 from scripts.gui.asklocalfloat import AskLocalFloat
-from scripts.databasesession import DatabaseSession
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.projectnumber import Projectnumber
 from scripts.stockitemrecord import StockItemRecord
@@ -15,9 +14,9 @@ PADY = 2
 
 
 class WithdrawDialog(simpledialog.Dialog):
-    def __init__(self, root:Widget, dbsession:DatabaseSession,
+    def __init__(self, root:Widget, master_list:List[StockItemRecord],
                  projectnumber:Projectnumber) -> None:
-        self.__dbsession = dbsession
+        self.__master_list = master_list
         self.__withdrawed_items = []
         self.__temp_withdraw = []
         self.__projectnumber = projectnumber
@@ -27,9 +26,8 @@ class WithdrawDialog(simpledialog.Dialog):
     def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
         box = Frame(self)
-        self.__itemlistbox = ItemListbox(box, dbsession=self.__dbsession)
+        self.__itemlistbox = ItemListbox(box, master_list=self.__master_list)
         self.__itemlistbox.pack(side=LEFT, padx=PADX, pady=PADY)
-        self.__itemlistbox.populate(self.__dbsession.load_all_items())
         self.__itemlistbox.bind_selection(self._withdraw)
         box.pack()
         return self.__itemlistbox.lookup_entry

@@ -1,21 +1,21 @@
 import re
 from tkinter import *
 from tkinter import ttk
+from typing import List
 
-from scripts.databasesession import DatabaseSession
 from scripts.stockitemrecord import StockItemRecord
 
 
 class ItemListbox(LabelFrame):
     def __init__(self, root=None, title="Raktárkészlet",
-                 dbsession:DatabaseSession=None) -> None:
+                 master_list:List[StockItemRecord]=None) -> None:
         super().__init__(root, text=title)
-        self.__selected_item = None
+        self.__master_list = master_list
         self.__item_list = None
-        self.__dbsession = dbsession
         self._init_controll_variables()
         self._build_interface()
         self._bindings()
+        self._clear_selection()
 
     def _init_controll_variables(self) -> None:
         self.__lookup_var = StringVar()
@@ -24,10 +24,8 @@ class ItemListbox(LabelFrame):
     def _build_interface(self) -> None:
         self.__lookup_entry = ttk.Entry(self, textvariable=self.__lookup_var,
                                         validate="key")
-        self.__clear_button = Button(self, bitmap="questhead",
-                                     command=self._clear_selection)
-        self.__clear_button.grid(row=0, column=1)
-        self.__lookup_entry.focus()
+        Button(self, bitmap="questhead", command=self._clear_selection)\
+            .grid(row=0, column=1)
 
         vertical_scroll = Scrollbar(self, orient=VERTICAL)
         self.__listbox = Listbox(self,
@@ -61,28 +59,22 @@ class ItemListbox(LabelFrame):
     def _clear_selection(self, _=None) -> None:
         self.__lookup_var.set("")
         self.lookup("")    
+        self.__lookup_entry.focus()
 
-    def populate(self, item_list:list) -> None:
+    def _populate(self, item_list:list) -> None:    
+        self.__listbox.delete(0, END)
         self.__item_list = item_list
         for item in item_list:
             self.__listbox.insert(END, str(item))
-
-    def clear_listbox(self) -> None:
-        self.__listbox.delete(0, END)
 
     def bind_selection(self, method:callable) -> None:
         self.__listbox.bind("<<ListboxSelect>>", method)
 
     def get_record(self) -> StockItemRecord:
         try:
-            self.__selected_item =\
-                self.__item_list[self.__listbox.curselection()[0]]
-            return self.__selected_item
+            return self.__item_list[self.__listbox.curselection()[0]]
         except IndexError:  # empty list
             return None
-
-    def select_index(self, idx:int) -> None:
-        self.__listbox.selection_set(idx)
 
     def update_item(self, item:StockItemRecord) -> None:
         for idx, stockitem in enumerate(self.__item_list):
@@ -91,25 +83,14 @@ class ItemListbox(LabelFrame):
         self.__item_list[idx] = item
         self.__listbox.delete(idx)
         self.__listbox.insert(idx, str(item))
-        self.select_index(idx)
-        self.__listbox.see(idx)
 
-    def lookup(self, term:str) -> bool:        
-        self.clear_listbox()
-        selection = self.__dbsession.load_all_items()
+    def lookup(self, term:str) -> bool:    
+        selection = list(self.__master_list)
         for word in re.split(r"\W+", term.lower()):
             if word:
                 selection = [item for item in selection if item.contains(word)]
-        self.populate(selection)
-        try:
-            self.select_index(0)
-        except IndexError:  # no result, empty list
-            pass
+        self._populate(selection)
         return True
-
-    @property
-    def selected_item(self) -> StockItemRecord:
-        return self.__selected_item
     
     @property
     def lookup_entry(self) -> ttk.Entry:
