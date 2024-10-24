@@ -19,10 +19,9 @@ class WithdrawDialog(simpledialog.Dialog):
         self.__master_list = master_list
         self.__withdrawed_items = []
         self.__temp_withdraw = []
-        self.__projectnumber = projectnumber
         super().__init__(root,
-                         title=f"{self.__projectnumber.legal}: Kivét raktárból")
-    
+                         title=f"{projectnumber.legal}: Kivét raktárból")
+
     def body(self, root:Widget) -> None:
         """Create dialog body. Return widget that should have initial focus."""
         box = Frame(self)
@@ -41,10 +40,10 @@ class WithdrawDialog(simpledialog.Dialog):
         w = ttk.Button(box, text="Mégse", width=10, command=self.cancel)
         w.pack(side=LEFT, padx=5, pady=5)
         box.pack()
-    
+
     def apply(self) -> None:
         self.__withdrawed_items = self.__temp_withdraw
-    
+
     def _withdraw(self, _:Event) -> float:
         item = self.__itemlistbox.get_record()
         change = AskLocalFloat(title="Kivét", prompt=item.name, root=self,
@@ -52,12 +51,11 @@ class WithdrawDialog(simpledialog.Dialog):
                                maxvalue=item.stock, unit=item.unit)
         if change.number:
             setattr(item, "change", -change.number)
-            setattr(item, "projectnumber", str(self.__projectnumber))
             self.__temp_withdraw.append(item)
             for item in self.__temp_withdraw:
                 print(item.withdraw_view)
             print("---")
-    
+
     @property
     def withdrawed_items(self) -> List[StockItemRecord]|None:
         return self.__withdrawed_items

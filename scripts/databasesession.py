@@ -2,6 +2,7 @@ import pathlib
 import sqlite3
 from typing import List
 
+from scripts.projectnumber import Projectnumber
 from scripts.stockitemrecord import StockItemRecord
 
 
@@ -159,7 +160,8 @@ VALUES (?, ?, ?, ?, date(), ?)
     def load_all_items(self) -> List[StockItemRecord]:
         return [StockItemRecord(**item) for item in self.select_all_items()]
     
-    def log_stock_change(self, items:List[StockItemRecord]) -> None:
+    def log_stock_change(self, items:List[StockItemRecord],
+                         projectnumber:Projectnumber) -> None:
         for item in items:
             with self:
                 self.execute("""
@@ -174,4 +176,4 @@ VALUES (?, ?, ?, ?, date(), ?)
                                               valtozas, datum, projektszam)
                     VALUES (?, ?, ?, ?, date(), ?)
                 """, (name, item.unitprice, item.unit, item.change,
-                    item.projectnumber))
+                      str(projectnumber)))

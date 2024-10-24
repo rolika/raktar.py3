@@ -17,7 +17,6 @@ DATABASE = "data/adatok.db"
 class InventoryApplication():
     def __init__(self, database:str=DATABASE) -> None:
         self.__dbsession = DatabaseSession(database)
-        self.__projectnumber = None
         self.__ui = TitleUI(self)
         self._bindings()
         self.__ui.pack()
@@ -25,17 +24,17 @@ class InventoryApplication():
 
     def _bindings(self) -> None:
         self.__ui.withdraw_button= self._withdraw
-    
+
     def _withdraw(self) -> None:
         project = AskProjectNumber(self.__ui)
-        self.__projectnumber = project.projectnumber
-        if not self.__projectnumber:
+        projectnumber = project.projectnumber
+        if not projectnumber:
             return
         master_list = self.__dbsession.load_all_items()
-        withdraw_dialog = WithdrawDialog(self.__ui, master_list,
-                                         self.__projectnumber)
-        self.__dbsession.log_stock_change(withdraw_dialog.withdrawed_items)
-                
+        withdraw_dialog = WithdrawDialog(self.__ui, master_list, projectnumber)
+        self.__dbsession.log_stock_change(withdraw_dialog.withdrawed_items,
+                                          projectnumber)
+
 
 
 if __name__ == "__main__":
