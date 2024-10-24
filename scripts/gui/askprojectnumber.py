@@ -6,7 +6,7 @@ from scripts.gui import styles
 from scripts.projectnumber import Projectnumber
 
 
-class AskProjectNumber(simpledialog.Dialog):
+class _AskProjectNumber(simpledialog.Dialog):
     """Ask for a valid project number."""
     def __init__(self, root=None) -> None:
         self.__projectnumber = None
@@ -56,6 +56,10 @@ class AskProjectNumber(simpledialog.Dialog):
         return True
 
 
+def ask_projectnumber(root:Widget=None):
+    project = _AskProjectNumber(root)
+    return project.projectnumber
+
+
 if __name__ == "__main__":
-    value = AskProjectNumber()
-    print(value.projectnumber)
+    print(ask_projectnumber())

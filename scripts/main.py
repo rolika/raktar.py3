@@ -5,7 +5,7 @@ INVENTORY APPLICATION
 import locale
 locale.setlocale(locale.LC_ALL, "")
 
-from scripts.gui.askprojectnumber import AskProjectNumber
+from scripts.gui.askprojectnumber import ask_projectnumber
 from scripts.databasesession import DatabaseSession
 from scripts.gui.title_ui import TitleUI
 from scripts.gui.withdrawdialog import WithdrawDialog
@@ -26,8 +26,7 @@ class InventoryApplication():
         self.__ui.withdraw_button= self._withdraw
 
     def _withdraw(self) -> None:
-        project = AskProjectNumber(self.__ui)
-        projectnumber = project.projectnumber
+        projectnumber = ask_projectnumber(self.__ui)
         if not projectnumber:
             return
         master_list = self.__dbsession.load_all_items()

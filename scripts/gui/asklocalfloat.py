@@ -1,5 +1,4 @@
 import locale
-locale.setlocale(locale.LC_ALL, "")
 
 from tkinter import *
 from tkinter import ttk
@@ -8,9 +7,9 @@ from tkinter import simpledialog
 from scripts.gui import styles
 
 
-class AskLocalFloat(simpledialog.Dialog):
+class _AskLocalFloat(simpledialog.Dialog):
     """Ask for a float number and verify it considering locale settings."""
-    def __init__(self, title:str, prompt:str, root=None, initvalue:float=None,
+    def __init__(self, title:str, prompt:str, root:Widget=None, initvalue:float=None,
                  minvalue:float=None, maxvalue:float=None,
                  unit:str=None) -> None:
         self.__prompt = prompt
@@ -72,10 +71,16 @@ class AskLocalFloat(simpledialog.Dialog):
             self.unbind("<KP_Enter>")
         return True
 
+
+def ask_localfloat(title:str, prompt:str, root:Widget=None,
+                   initvalue:float=None, minvalue:float=None,
+                   maxvalue:float=None, unit:str=None) -> float:
+    float_ = _AskLocalFloat(title, prompt, root, initvalue, minvalue, maxvalue,
+                            unit)
+    return float_.number
+
+
 if __name__ == "__main__":
-    import locale
     locale.setlocale(locale.LC_ALL, "")
-    print(locale.getlocale())
-    value = AskLocalFloat(title="Kivét", prompt="Mennyit veszel ki?",
-                          initvalue=324.5, minvalue=10.0, maxvalue=500.0)
-    print(value.number)
+    print(ask_localfloat(title="Kivét", prompt="Mennyit veszel ki?", root=None,
+                         initvalue=324.5, minvalue=10.0, maxvalue=500.0))

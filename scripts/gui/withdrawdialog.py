@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import simpledialog
 from typing import List
 
-from scripts.gui.asklocalfloat import AskLocalFloat
+from scripts.gui.asklocalfloat import ask_localfloat
 from scripts.gui.itemlistbox import ItemListbox
 from scripts.projectnumber import Projectnumber
 from scripts.stockitemrecord import StockItemRecord
@@ -46,11 +46,11 @@ class WithdrawDialog(simpledialog.Dialog):
 
     def _withdraw(self, _:Event) -> float:
         item = self.__itemlistbox.get_record()
-        change = AskLocalFloat(title="Kivét", prompt=item.name, root=self,
-                               initvalue=item.stock, minvalue=0,
-                               maxvalue=item.stock, unit=item.unit)
-        if change.number:
-            setattr(item, "change", -change.number)
+        change = ask_localfloat(title="Kivét", prompt=item.name, root=self,
+                                initvalue=item.stock, minvalue=0,
+                                maxvalue=item.stock, unit=item.unit)
+        if change:
+            setattr(item, "change", -change)
             self.__temp_withdraw.append(item)
             for item in self.__temp_withdraw:
                 print(item.withdraw_view)
